@@ -49,11 +49,11 @@ jobs:
       - name: Upload hex
         uses: actions/upload-artifact@v4
         with:
-          name: symbioze-45-${{ github.event.inputs.target || 'STM32F411' }}
+          name: symbioze-45-${{ github.event.inputs.target || 'HUMMINGBIRD_F4_V3' }}
           path: obj/*.hex
 
-      - name: Publish HMBF4_PRO release asset
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'HMBF4_PRO'
+      - name: Publish Hummingbird release asset
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'HUMMINGBIRD_F4_V3'
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload symbioze-osd-4.5-v1.0.0 obj/*.hex --clobber
