@@ -6,6 +6,7 @@
 
 #include "config/feature.h"
 #include "config/config.h"
+#include "common/maths.h"
 #include "fc/rc_controls.h"
 #include "fc/rc_modes.h"
 #include "drivers/dshot.h"
