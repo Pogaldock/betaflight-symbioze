@@ -1,7 +1,7 @@
-# SYMBIOZE: fast targeted build of the user's board MCU (STM32F411) on the 4.5
-# base, plus the OSD unit tests. Pushing to symbioze-osd-4.5 runs it; a green
-# run proves the art backport compiles and fits the 512 KB F411.
-name: Symbioze CI
+# SYMBIOZE: build the BetaFPV Air65 (STM32G473, target BETAFPVG473) on the
+# Betaflight 4.5.6 base + Symbioze OSD Art elements. Pushing to symbioze-osd-4.5
+# builds it and publishes the hex to the symbioze-air65-g473-v1 release.
+name: Symbioze Air65
 
 on:
   push:
@@ -11,7 +11,7 @@ on:
     inputs:
       target:
         description: 'Target to build'
-        default: 'STM32F411'
+        default: 'BETAFPVG473'
         required: true
         type: string
 
@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   build:
-    name: Build ${{ github.event.inputs.target || 'STM32F411' }}
+    name: Build ${{ github.event.inputs.target || 'BETAFPVG473' }}
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -40,20 +40,27 @@ jobs:
       - name: Install ARM toolchain
         run: make arm_sdk_install
 
-      - name: Build ${{ github.event.inputs.target || 'STM32F411' }}
-        run: make ${{ github.event.inputs.target || 'STM32F411' }}
+      - name: Build
+        run: make ${{ github.event.inputs.target || 'BETAFPVG473' }}
 
-      - name: Show hex size
-        run: ls -la obj/*.hex
+      - name: Stage hex
+        run: |
+          ls -la obj/*.hex
+          mkdir -p out
+          for f in obj/*.hex; do cp "$f" "out/$(basename "${f%.hex}")_SYMBIOZE.hex"; done
 
-      - name: Upload hex
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: symbioze-45-${{ github.event.inputs.target || 'HUMMINGBIRD_F4_V3' }}
-          path: obj/*.hex
+          name: symbioze-air65-${{ github.event.inputs.target || 'BETAFPVG473' }}
+          path: out/*.hex
 
-      - name: Publish Hummingbird release asset
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'HUMMINGBIRD_F4_V3'
+      - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload symbioze-osd-4.5-v1.0.0 obj/*.hex --clobber
+        run: |
+          TAG=symbioze-air65-g473-v1
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" \
+            --title "Symbioze OSD — BetaFPV Air65 (BETAFPVG473)" --prerelease \
+            --notes "BetaFPV Air65 (STM32G473, target BETAFPVG473) on Betaflight 4.5.6 + Symbioze OSD Art elements (OSD_ART0-5: placeable glyph-block art, positionable anywhere on the OSD). Flash via Betaflight Configurator -> Load Firmware [Local], then re-upload your OSD font. Full custom-font + boot-logo + layout support."
+          gh release upload "$TAG" out/*.hex --clobber
