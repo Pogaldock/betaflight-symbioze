@@ -4,7 +4,7 @@
 #include "drivers/io.h"
 #include "drivers/dma.h"
 #include "drivers/timer.h"
-#include "drivers/timer_def.h"
+#include "drivers/stm32/timer_def.h"
 
 const timerHardware_t timerHardware[USABLE_TIMER_CHANNEL_COUNT] = {
     DEF_TIM(TIM4, CH4, PB9, TIM_USE_MOTOR, 0, 0),
