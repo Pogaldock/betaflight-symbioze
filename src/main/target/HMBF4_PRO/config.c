@@ -5,6 +5,7 @@
 #ifdef USE_TARGET_CONFIG
 
 #include "config/feature.h"
+#include "config/config.h"
 #include "fc/rc_controls.h"
 #include "fc/rc_modes.h"
 #include "drivers/dshot.h"
@@ -13,7 +14,6 @@
 #include "osd/osd.h"
 #include "pg/adc.h"
 #include "pg/motor.h"
-#include "pg/pilot.h"
 #include "pg/rx.h"
 #include "pg/rx_spi.h"
 #include "pg/vcd.h"
