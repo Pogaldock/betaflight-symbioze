@@ -5,17 +5,21 @@
 #ifdef USE_TARGET_CONFIG
 
 #include "config/feature.h"
+#include "fc/rc_controls.h"
+#include "fc/rc_modes.h"
 #include "drivers/dshot.h"
 #include "drivers/motor.h"
 #include "drivers/osd.h"
 #include "osd/osd.h"
 #include "pg/adc.h"
 #include "pg/motor.h"
+#include "pg/pilot.h"
 #include "pg/rx.h"
 #include "pg/rx_spi.h"
 #include "pg/vcd.h"
 #include "pg/vtx_table.h"
 #include "rx/rx_spi.h"
+#include "io/ledstrip.h"
 #include "sensors/battery.h"
 #include "io/vtx.h"
 
@@ -24,6 +28,15 @@ void targetConfiguration(void)
     featureConfigMutable()->enabledFeatures |= FEATURE_RX_SPI;
     featureConfigMutable()->enabledFeatures &= ~FEATURE_RX_SERIAL;
     rxSpiConfigMutable()->rx_spi_protocol = RX_SPI_EXPRESSLRS;
+
+    modeActivationConditionsMutable(0)->modeId = BOXARM;
+    modeActivationConditionsMutable(0)->auxChannelIndex = AUX1 - NON_AUX_CHANNEL_COUNT;
+    modeActivationConditionsMutable(0)->range.startStep = CHANNEL_VALUE_TO_STEP(1700);
+    modeActivationConditionsMutable(0)->range.endStep = CHANNEL_VALUE_TO_STEP(2100);
+    modeActivationConditionsMutable(1)->modeId = BOXANGLE;
+    modeActivationConditionsMutable(1)->auxChannelIndex = AUX2 - NON_AUX_CHANNEL_COUNT;
+    modeActivationConditionsMutable(1)->range.startStep = CHANNEL_VALUE_TO_STEP(900);
+    modeActivationConditionsMutable(1)->range.endStep = CHANNEL_VALUE_TO_STEP(1300);
 
     osdConfigMutable()->displayPortDevice = OSD_DISPLAYPORT_DEVICE_MAX7456;
     osdElementConfigMutable()->item_pos[OSD_MAIN_BATT_VOLTAGE] = OSD_PROFILE_1_FLAG | OSD_POS(24, 10);
@@ -46,6 +59,7 @@ void targetConfiguration(void)
     motorConfigMutable()->dev.useDshotTelemetry = DSHOT_TELEMETRY_ON;
     motorConfigMutable()->dev.motorPwmProtocol = PWM_TYPE_DSHOT300;
     motorConfigMutable()->motorPoleCount = 12;
+    strcpy(pilotConfigMutable()->craftName, USBD_PRODUCT_STRING);
 }
 
 #endif
