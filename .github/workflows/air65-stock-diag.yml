@@ -1,0 +1,55 @@
+# SYMBIOZE DIAGNOSTIC: build STOCK Betaflight 4.5.6 for BETAFPVG473 (no Symbioze
+# changes at all) using our CI process. If this boots on the Air65 but the art
+# build doesn't, the art patch is at fault; if this ALSO boot-loops, our build
+# process (config hydration) is at fault, independent of the feature.
+name: Air65 STOCK diagnostic
+
+on:
+  push:
+    branches:
+      - air65-stock
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: STOCK BETAFPVG473 (4.5.6, no art)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Init config submodule
+        run: git submodule update --init -- src/config
+
+      - name: Hydrate configuration
+        run: make configs
+
+      - name: Cache tools
+        uses: actions/cache@v4
+        with:
+          path: tools
+          key: ${{ runner.os }}-45-tools-${{ hashFiles('mk/tools.mk') }}
+
+      - name: Install ARM toolchain
+        run: make arm_sdk_install
+
+      - name: Build
+        run: make BETAFPVG473
+
+      - name: Stage hex
+        run: |
+          ls -la obj/*.hex
+          mkdir -p out
+          for f in obj/*.hex; do cp "$f" "out/$(basename "${f%.hex}")_STOCK_DIAG.hex"; done
+
+      - name: Publish diagnostic release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG=symbioze-air65-g473-stock-diag
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" \
+            --title "DIAGNOSTIC — STOCK Betaflight 4.5.6 BETAFPVG473 (no Symbioze)" --prerelease \
+            --notes "Pure stock Betaflight 4.5.6 for BETAFPVG473, built through the Symbioze CI with ZERO feature changes. Purpose: confirm the CI build process itself boots on the Air65. Flash with Full chip erase. If this boots but the Symbioze art build does not, the art patch is the cause; if this also boot-loops, the build process is the cause."
+          gh release upload "$TAG" out/*.hex --clobber
