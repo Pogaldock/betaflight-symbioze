@@ -5,6 +5,8 @@
 #ifdef USE_TARGET_CONFIG
 
 #include "config/feature.h"
+#include "drivers/dshot.h"
+#include "drivers/motor.h"
 #include "drivers/osd.h"
 #include "osd/osd.h"
 #include "pg/adc.h"
