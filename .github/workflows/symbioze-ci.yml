@@ -59,8 +59,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG=symbioze-air65-g473-v1
+          TAG=symbioze-air65-g473-v2
           gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" \
-            --title "Symbioze OSD — BetaFPV Air65 (BETAFPVG473)" --prerelease \
-            --notes "BetaFPV Air65 (STM32G473, target BETAFPVG473) on Betaflight 4.5.6 + Symbioze OSD Art elements (OSD_ART0-5: placeable glyph-block art, positionable anywhere on the OSD). Flash via Betaflight Configurator -> Load Firmware [Local], then re-upload your OSD font. Full custom-font + boot-logo + layout support."
+            --title "Symbioze OSD — BetaFPV Air65 (BETAFPVG473) v2 boot-loop fix" --prerelease \
+            --notes "BetaFPV Air65 (STM32G473, target BETAFPVG473) on Betaflight 4.5.6 + Symbioze OSD Art elements (OSD_ART0-5: placeable glyph-block art). v2 FIX: bumped the osdElementConfig parameter-group version so a pre-art config is cleanly reset instead of misread — v1 could boot-loop when flashed over an existing config. FLASH WITH 'Full chip erase' TICKED to guarantee a clean config, then re-upload your OSD font. Full custom-font + boot-logo + layout support."
           gh release upload "$TAG" out/*.hex --clobber
