@@ -5,6 +5,8 @@ on:
     branches:
       - master
       - '*-maintenance'
+      - symbioze-osd # SYMBIOZE: build the fork branch
+  workflow_dispatch: # SYMBIOZE: allow manual re-runs
 
 jobs:
   ci:
