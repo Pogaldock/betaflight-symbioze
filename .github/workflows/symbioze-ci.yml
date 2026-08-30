@@ -1,0 +1,53 @@
+# SYMBIOZE: fast targeted build of the user's board MCU (STM32F411) on the 4.5
+# base, plus the OSD unit tests. Pushing to symbioze-osd-4.5 runs it; a green
+# run proves the art backport compiles and fits the 512 KB F411.
+name: Symbioze CI
+
+on:
+  push:
+    branches:
+      - symbioze-osd-4.5
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Target to build'
+        default: 'STM32F411'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ github.event.inputs.target || 'STM32F411' }}
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Init config submodule
+        run: git submodule update --init -- src/config
+
+      - name: Hydrate configuration
+        run: make configs
+
+      - name: Cache tools
+        uses: actions/cache@v4
+        with:
+          path: tools
+          key: ${{ runner.os }}-45-tools-${{ hashFiles('mk/tools.mk') }}
+
+      - name: Install ARM toolchain
+        run: make arm_sdk_install
+
+      - name: Build ${{ github.event.inputs.target || 'STM32F411' }}
+        run: make ${{ github.event.inputs.target || 'STM32F411' }}
+
+      - name: Show hex size
+        run: ls -la obj/*.hex
+
+      - name: Upload hex
+        uses: actions/upload-artifact@v4
+        with:
+          name: symbioze-45-${{ github.event.inputs.target || 'STM32F411' }}
+          path: obj/*.hex

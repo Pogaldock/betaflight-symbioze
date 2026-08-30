@@ -79,6 +79,15 @@ typedef enum {
     BOXBEEPERMUTE,
     BOXREADY,
     BOXLAPTIMERRESET,
+    // SYMBIOZE: AUX gating for OSD art elements. With a mode range configured
+    // the matching art element only draws while the box is active; with none
+    // it is always-on. MUST stay contiguous.
+    BOXOSDART1,
+    BOXOSDART2,
+    BOXOSDART3,
+    BOXOSDART4,
+    BOXOSDART5,
+    BOXOSDART6,
     CHECKBOX_ITEM_COUNT
 } boxId_e;
 

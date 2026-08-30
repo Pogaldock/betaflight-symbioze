@@ -189,6 +189,14 @@ typedef enum {
     OSD_GPS_LAP_TIME_CURRENT,
     OSD_GPS_LAP_TIME_PREVIOUS,
     OSD_GPS_LAP_TIME_BEST3,
+    // SYMBIOZE: art elements — each draws a cols x rows block of consecutive
+    // font glyphs at its position (custom frames, images, in-flight logos).
+    OSD_ART0,
+    OSD_ART1,
+    OSD_ART2,
+    OSD_ART3,
+    OSD_ART4,
+    OSD_ART5,
     OSD_ITEM_COUNT // MUST BE LAST
 } osd_items_e;
 
@@ -355,7 +363,18 @@ typedef struct osdConfig_s {
 #ifdef USE_SPEC_PREARM_SCREEN
     uint8_t osd_show_spec_prearm;
 #endif // USE_SPEC_PREARM_SCREEN
+    // SYMBIOZE: art element glyph blocks (see OSD_ART0..5)
+    struct {
+        uint8_t glyph;                        // first glyph code of the block (1-255)
+        uint8_t cols;                         // block width in glyph cells
+        uint8_t rows;                         // block height in glyph cells
+    } art[6];
 } osdConfig_t;
+
+// SYMBIOZE: art element geometry limits (SD MAX7456: 30 cols x 16 rows)
+#define OSD_ART_COUNT 6
+#define OSD_ART_MAX_COLS 30
+#define OSD_ART_MAX_ROWS 16
 
 PG_DECLARE(osdConfig_t, osdConfig);
 

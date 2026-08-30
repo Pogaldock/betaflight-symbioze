@@ -102,6 +102,13 @@ static const box_t boxes[CHECKBOX_ITEM_COUNT] = {
     { .boxId = BOXBEEPERMUTE, .boxName = "BEEPER MUTE", .permanentId = 52},
     { .boxId = BOXREADY, .boxName = "READY", .permanentId = 53},
     { .boxId = BOXLAPTIMERRESET, .boxName = "LAP TIMER RESET", .permanentId = 54},
+    // SYMBIOZE: OSD art gating switches
+    { .boxId = BOXOSDART1, .boxName = "OSD ART 1", .permanentId = 55},
+    { .boxId = BOXOSDART2, .boxName = "OSD ART 2", .permanentId = 56},
+    { .boxId = BOXOSDART3, .boxName = "OSD ART 3", .permanentId = 57},
+    { .boxId = BOXOSDART4, .boxName = "OSD ART 4", .permanentId = 58},
+    { .boxId = BOXOSDART5, .boxName = "OSD ART 5", .permanentId = 59},
+    { .boxId = BOXOSDART6, .boxName = "OSD ART 6", .permanentId = 60},
 };
 
 // mask of enabled IDs, calculated on startup based on enabled features. boxId_e is used as bit index
@@ -341,6 +348,13 @@ void initActiveBoxIds(void)
 
 #if defined(USE_GPS_LAP_TIMER)
     BME(BOXLAPTIMERRESET);
+#endif
+
+#if defined(USE_OSD)
+    // SYMBIOZE: OSD art gating switches
+    for (boxId_e boxId = BOXOSDART1; boxId <= BOXOSDART6; boxId++) {
+        BME(boxId);
+    }
 #endif
 
 #undef BME

@@ -156,7 +156,7 @@ escSensorData_t *osdEscDataCombined;
 
 STATIC_ASSERT(OSD_POS_MAX == OSD_POS(63,31), OSD_POS_MAX_incorrect);
 
-PG_REGISTER_WITH_RESET_FN(osdConfig_t, osdConfig, PG_OSD_CONFIG, 12);
+PG_REGISTER_WITH_RESET_FN(osdConfig_t, osdConfig, PG_OSD_CONFIG, 13); // SYMBIOZE: v13 = art elements
 
 PG_REGISTER_WITH_RESET_FN(osdElementConfig_t, osdElementConfig, PG_OSD_ELEMENT_CONFIG, 1);
 
@@ -430,6 +430,14 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
 #ifdef USE_RACE_PRO
     osdConfig->osd_show_spec_prearm = true;
 #endif // USE_RACE_PRO
+
+    // SYMBIOZE: art elements default to the boot-logo block (24x4 at 0xA0) so
+    // enabling one instantly shows the user's logo art in flight.
+    for (int i = 0; i < OSD_ART_COUNT; i++) {
+        osdConfig->art[i].glyph = 0xA0;
+        osdConfig->art[i].cols = 24;
+        osdConfig->art[i].rows = 4;
+    }
 }
 
 void pgResetFn_osdElementConfig(osdElementConfig_t *osdElementConfig)

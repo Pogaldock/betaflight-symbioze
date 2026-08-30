@@ -145,6 +145,7 @@
 #include "fc/gps_lap_timer.h"
 #include "fc/rc_adjustments.h"
 #include "fc/rc_controls.h"
+#include "fc/rc_modes.h" // SYMBIOZE: AUX gating for art elements
 #include "fc/runtime_config.h"
 
 #include "flight/gps_rescue.h"
@@ -1785,6 +1786,12 @@ static const uint8_t osdElementDisplayOrder[] = {
     OSD_MAH_DRAWN,
     OSD_WATT_HOURS_DRAWN,
     OSD_CRAFT_NAME,
+    OSD_ART0, // SYMBIOZE
+    OSD_ART1, // SYMBIOZE
+    OSD_ART2, // SYMBIOZE
+    OSD_ART3, // SYMBIOZE
+    OSD_ART4, // SYMBIOZE
+    OSD_ART5, // SYMBIOZE
     OSD_ALTITUDE,
     OSD_ROLL_PIDS,
     OSD_PITCH_PIDS,
@@ -1866,10 +1873,57 @@ static const uint8_t osdElementDisplayOrder[] = {
 #endif
 };
 
+// SYMBIOZE: draw a cols x rows block of consecutive font glyphs — custom
+// frames, images and in-flight logos authored by a font editor. Rendered one
+// row per pass (like the camera frame) to bound per-cycle display writes. An
+// optional AUX mode (BOXOSDART1 + index) gates drawing when a range is set.
+static void osdElementArt(osdElementParms_t *element)
+{
+    static uint8_t artRow[OSD_ART_COUNT] = { 0 };
+    const int artIndex = element->item - OSD_ART0;
+
+    if (artIndex < 0 || artIndex >= OSD_ART_COUNT) {
+        element->drawElement = false;
+        return;
+    }
+
+    const boxId_e gate = (boxId_e)(BOXOSDART1 + artIndex);
+    if (isModeActivationConditionPresent(gate) && !IS_RC_MODE_ACTIVE(gate)) {
+        artRow[artIndex] = 0;
+        element->drawElement = false;
+        return;
+    }
+
+    const uint8_t cols = constrain(osdConfig()->art[artIndex].cols, 1, OSD_ART_MAX_COLS);
+    const uint8_t rows = constrain(osdConfig()->art[artIndex].rows, 1, OSD_ART_MAX_ROWS);
+    const uint8_t base = osdConfig()->art[artIndex].glyph;
+
+    const uint8_t row = artRow[artIndex];
+    uint8_t glyph = base + (uint8_t)(row * cols); // uint8 wrap is intentional
+    for (uint8_t c = 0; c < cols; c++) {
+        osdDisplayWriteChar(element, element->elemPosX + c, element->elemPosY + row, DISPLAYPORT_SEVERITY_NORMAL, glyph++);
+    }
+
+    if (row + 1 < rows) {
+        artRow[artIndex] = row + 1;
+        element->rendered = false;  // more rows to draw on subsequent passes
+    } else {
+        artRow[artIndex] = 0;
+    }
+
+    element->drawElement = false;  // element draws itself
+}
+
 // Define the mapping between the OSD element id and the function to draw it
 
 const osdElementDrawFn osdElementDrawFunction[OSD_ITEM_COUNT] = {
     [OSD_CAMERA_FRAME]            = NULL,  // only has background. Added first so it's the lowest "layer" and doesn't cover other elements
+    [OSD_ART0]                   = osdElementArt, // SYMBIOZE
+    [OSD_ART1]                   = osdElementArt, // SYMBIOZE
+    [OSD_ART2]                   = osdElementArt, // SYMBIOZE
+    [OSD_ART3]                   = osdElementArt, // SYMBIOZE
+    [OSD_ART4]                   = osdElementArt, // SYMBIOZE
+    [OSD_ART5]                   = osdElementArt, // SYMBIOZE
     [OSD_RSSI_VALUE]              = osdElementRssi,
     [OSD_MAIN_BATT_VOLTAGE]       = osdElementMainBatteryVoltage,
     [OSD_CROSSHAIRS]              = osdElementCrosshairs,  // only has background, but needs to be over other elements (like artificial horizon)
