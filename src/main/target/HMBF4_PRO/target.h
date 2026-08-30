@@ -23,6 +23,7 @@
 #define SPI3_NSS_PIN PA15
 
 #define USE_VCP
+#define USE_UART
 #define USE_UART1
 #define USE_UART2
 #define UART1_TX_PIN PA9
@@ -30,7 +31,6 @@
 #define UART2_TX_PIN PA2
 #define UART2_RX_PIN PA3
 #define SERIAL_PORT_COUNT 3
-#define USE_MSP_UART
 #define USE_LED_STRIP
 #define USE_LED_STRIP_STATUS_MODE
 #define LED_STRIP_PIN PB1
