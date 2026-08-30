@@ -1,0 +1,53 @@
+# SYMBIOZE: build a single BOARD (config-baked hex) on demand and attach it to
+# a release — covers boards outside the default CI target set, e.g. whoop FCs
+# like HUMMINGBIRD_F4_V4. Board names come from the betaflight/config repo.
+name: Board build
+
+on:
+  workflow_dispatch:
+    inputs:
+      board:
+        description: 'Board name from betaflight/config (e.g. HUMMINGBIRD_F4_V4)'
+        required: true
+        type: string
+      attach_to:
+        description: 'Release tag to attach the hex to'
+        default: 'symbioze-osd-v1.0.0'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ inputs.board }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Init config submodule
+        run: git submodule update --init -- src/config
+
+      - name: Hydrate configuration
+        run: make configs
+
+      - name: Cache tools
+        uses: actions/cache@v5
+        with:
+          path: tools
+          key: ${{ runner.os }}-tools-v2-${{ hashFiles('mk/tools.mk', 'src/platform/*/mk/*.mk') }}-arm
+
+      - name: Install ARM toolchain
+        run: make SDK=arm platform-tools-install
+
+      - name: Build ${{ inputs.board }}
+        run: make ${{ inputs.board }}
+
+      - name: Attach hex to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ls -la obj/*.hex
+          gh release upload "${{ inputs.attach_to }}" obj/*.hex --clobber
