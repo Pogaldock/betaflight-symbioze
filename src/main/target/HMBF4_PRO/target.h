@@ -40,6 +40,7 @@
 #define USE_ACC
 #define USE_SPI_GYRO
 #define USE_ACCGYRO_BMI270
+#define USE_EXTI
 #define GYRO_1_CS_PIN SPI1_NSS_PIN
 #define GYRO_1_EXTI_PIN PB6
 #define GYRO_1_SPI_INSTANCE SPI1
