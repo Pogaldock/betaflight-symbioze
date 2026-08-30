@@ -3886,6 +3886,89 @@ RAM_CODE static void cliMcuId(const char *cmdName, char *cmdline)
     cliPrintLinef("mcu_id %08x%08x%08x", U_ID_0, U_ID_1, U_ID_2);
 }
 
+#ifdef USE_OSD
+// SYMBIOZE: set OSD custom messages with raw glyph support.
+//   osdmsg                -> list all slots
+//   osdmsg <1-8>          -> show one slot
+//   osdmsg <1-8> -        -> clear the slot
+//   osdmsg <1-8> <text>   -> set the slot; \xNN inserts glyph code NN (hex),
+//                            \\ inserts a literal backslash. Text may contain
+//                            spaces. Follow with `save`.
+static void cliOsdMsgPrintSlot(int index)
+{
+    const char *msg = pilotConfig()->message[index];
+    cliPrintf("osdmsg %d =", index + 1);
+    for (const char *p = msg; *p; p++) {
+        const uint8_t c = (uint8_t)*p;
+        if (c >= 0x20 && c <= 0x7E && c != '\\') {
+            cliPrintf(" %c", c);
+        } else {
+            cliPrintf(" \\x%02X", c);
+        }
+    }
+    cliPrintLinefeed();
+}
+
+static void cliOsdMsg(const char *cmdName, char *cmdline)
+{
+    char *p = cmdline;
+    while (*p == ' ') p++;
+
+    if (*p == '\0') {
+        for (int i = 0; i < OSD_CUSTOM_MSG_COUNT; i++) {
+            cliOsdMsgPrintSlot(i);
+        }
+        return;
+    }
+
+    const int index = atoi(p) - 1;
+    if (index < 0 || index >= OSD_CUSTOM_MSG_COUNT) {
+        cliPrintErrorLinef(cmdName, "INDEX OUTSIDE OF [1..%d]", OSD_CUSTOM_MSG_COUNT);
+        return;
+    }
+
+    while (*p && *p != ' ') p++; // skip the index token
+    while (*p == ' ') p++;
+
+    if (*p == '\0') {
+        cliOsdMsgPrintSlot(index);
+        return;
+    }
+
+    char *out = pilotConfigMutable()->message[index];
+
+    if (p[0] == '-' && p[1] == '\0') {
+        out[0] = '\0';
+        cliOsdMsgPrintSlot(index);
+        return;
+    }
+
+    unsigned len = 0;
+    while (*p && len < MAX_NAME_LENGTH) {
+        if (p[0] == '\\' && (p[1] == 'x' || p[1] == 'X') && isxdigit((unsigned char)p[2]) && isxdigit((unsigned char)p[3])) {
+            const char hex[3] = { p[2], p[3], '\0' };
+            uint8_t value = (uint8_t)strtoul(hex, NULL, 16);
+            if (value == 0) {
+                value = ' '; // 0x00 terminates strings; substitute a space
+            }
+            out[len++] = (char)value;
+            p += 4;
+        } else if (p[0] == '\\' && p[1] == '\\') {
+            out[len++] = '\\';
+            p += 2;
+        } else {
+            out[len++] = *p++;
+        }
+    }
+    out[len] = '\0';
+
+    if (*p) {
+        cliPrintErrorLinef(cmdName, "TRUNCATED TO %u GLYPHS", (unsigned)MAX_NAME_LENGTH);
+    }
+    cliOsdMsgPrintSlot(index);
+}
+#endif // USE_OSD
+
 #if ENABLE_LCD_CONSOLE
 RAM_CODE static void cliLcd(const char *cmdName, char *cmdline)
 {
@@ -8505,6 +8588,10 @@ const clicmd_t cmdTable[] = {
 #endif
 #endif
     CLI_COMMAND_DEF("options", "show build options", NULL, cliOptions),
+#ifdef USE_OSD
+    // SYMBIOZE
+    CLI_COMMAND_DEF("osdmsg", "get/set OSD custom message", "[<1-8>] [<text with \\xNN escapes>|-]", cliOsdMsg),
+#endif
 #ifndef MINIMAL_CLI
     CLI_COMMAND_DEF("peripherals", "show attached peripherals", NULL, cliPeripherals),
     CLI_COMMAND_DEF("play_sound", NULL, "[<index>]", cliPlaySound),

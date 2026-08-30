@@ -84,6 +84,24 @@ typedef enum {
     BOXREADY,
     BOXLAPTIMERRESET,
     BOXWPCAPTURE,
+    // SYMBIOZE: AUX gating for OSD custom messages and art elements. When a
+    // mode range is configured for one of these boxes, the matching OSD
+    // element only draws while the box is active; with no range configured the
+    // element is always-on. Each group MUST stay contiguous.
+    BOXOSDMSG1,
+    BOXOSDMSG2,
+    BOXOSDMSG3,
+    BOXOSDMSG4,
+    BOXOSDMSG5,
+    BOXOSDMSG6,
+    BOXOSDMSG7,
+    BOXOSDMSG8,
+    BOXOSDART1,
+    BOXOSDART2,
+    BOXOSDART3,
+    BOXOSDART4,
+    BOXOSDART5,
+    BOXOSDART6,
     CHECKBOX_ITEM_COUNT
 } boxId_e;
 

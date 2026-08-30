@@ -1703,6 +1703,42 @@ const clivalue_t valueTable[] = {
     { "osd_profile_name_pos",   VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_PROFILE_NAME]) },
 #endif
 
+    // SYMBIOZE: custom message positions (upstream leaves these MSP-only)
+    { "osd_custom_msg1_pos",    VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_CUSTOM_MSG0]) },
+    { "osd_custom_msg2_pos",    VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_CUSTOM_MSG1]) },
+    { "osd_custom_msg3_pos",    VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_CUSTOM_MSG2]) },
+    { "osd_custom_msg4_pos",    VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_CUSTOM_MSG3]) },
+    { "osd_custom_msg5_pos",    VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_CUSTOM_MSG4]) },
+    { "osd_custom_msg6_pos",    VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_CUSTOM_MSG5]) },
+    { "osd_custom_msg7_pos",    VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_CUSTOM_MSG6]) },
+    { "osd_custom_msg8_pos",    VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_CUSTOM_MSG7]) },
+
+    // SYMBIOZE: art elements — position + glyph block geometry
+    { "osd_art1_pos",           VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_ART0]) },
+    { "osd_art2_pos",           VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_ART1]) },
+    { "osd_art3_pos",           VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_ART2]) },
+    { "osd_art4_pos",           VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_ART3]) },
+    { "osd_art5_pos",           VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_ART4]) },
+    { "osd_art6_pos",           VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_ART5]) },
+    { "osd_art1_glyph",         VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, 255 }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[0].glyph) },
+    { "osd_art1_cols",          VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, OSD_ART_MAX_COLS }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[0].cols) },
+    { "osd_art1_rows",          VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, OSD_ART_MAX_ROWS }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[0].rows) },
+    { "osd_art2_glyph",         VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, 255 }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[1].glyph) },
+    { "osd_art2_cols",          VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, OSD_ART_MAX_COLS }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[1].cols) },
+    { "osd_art2_rows",          VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, OSD_ART_MAX_ROWS }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[1].rows) },
+    { "osd_art3_glyph",         VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, 255 }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[2].glyph) },
+    { "osd_art3_cols",          VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, OSD_ART_MAX_COLS }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[2].cols) },
+    { "osd_art3_rows",          VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, OSD_ART_MAX_ROWS }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[2].rows) },
+    { "osd_art4_glyph",         VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, 255 }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[3].glyph) },
+    { "osd_art4_cols",          VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, OSD_ART_MAX_COLS }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[3].cols) },
+    { "osd_art4_rows",          VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, OSD_ART_MAX_ROWS }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[3].rows) },
+    { "osd_art5_glyph",         VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, 255 }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[4].glyph) },
+    { "osd_art5_cols",          VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, OSD_ART_MAX_COLS }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[4].cols) },
+    { "osd_art5_rows",          VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, OSD_ART_MAX_ROWS }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[4].rows) },
+    { "osd_art6_glyph",         VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, 255 }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[5].glyph) },
+    { "osd_art6_cols",          VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, OSD_ART_MAX_COLS }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[5].cols) },
+    { "osd_art6_rows",          VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, OSD_ART_MAX_ROWS }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[5].rows) },
+
     { "osd_rcchannels_pos",     VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_RC_CHANNELS]) },
     { "osd_camera_frame_pos",   VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_CAMERA_FRAME]) },
     { "osd_efficiency_pos",     VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_EFFICIENCY]) },
@@ -2077,6 +2113,17 @@ const clivalue_t valueTable[] = {
     { "craft_name",   VAR_UINT8  | MASTER_VALUE | MODE_STRING, .config.string = { 1, MAX_NAME_LENGTH, STRING_FLAGS_NONE }, PG_PILOT_CONFIG, offsetof(pilotConfig_t, craftName) },
 #ifdef USE_OSD
     { "pilot_name",   VAR_UINT8  | MASTER_VALUE | MODE_STRING, .config.string = { 1, MAX_NAME_LENGTH, STRING_FLAGS_NONE }, PG_PILOT_CONFIG, offsetof(pilotConfig_t, pilotName) },
+
+    // SYMBIOZE: custom messages settable from the CLI (upstream is MSP-only).
+    // For raw glyph bytes use the `osdmsg` command with \xNN escapes.
+    { "custom_msg_1", VAR_UINT8  | MASTER_VALUE | MODE_STRING, .config.string = { 1, MAX_NAME_LENGTH, STRING_FLAGS_NONE }, PG_PILOT_CONFIG, offsetof(pilotConfig_t, message[0]) },
+    { "custom_msg_2", VAR_UINT8  | MASTER_VALUE | MODE_STRING, .config.string = { 1, MAX_NAME_LENGTH, STRING_FLAGS_NONE }, PG_PILOT_CONFIG, offsetof(pilotConfig_t, message[1]) },
+    { "custom_msg_3", VAR_UINT8  | MASTER_VALUE | MODE_STRING, .config.string = { 1, MAX_NAME_LENGTH, STRING_FLAGS_NONE }, PG_PILOT_CONFIG, offsetof(pilotConfig_t, message[2]) },
+    { "custom_msg_4", VAR_UINT8  | MASTER_VALUE | MODE_STRING, .config.string = { 1, MAX_NAME_LENGTH, STRING_FLAGS_NONE }, PG_PILOT_CONFIG, offsetof(pilotConfig_t, message[3]) },
+    { "custom_msg_5", VAR_UINT8  | MASTER_VALUE | MODE_STRING, .config.string = { 1, MAX_NAME_LENGTH, STRING_FLAGS_NONE }, PG_PILOT_CONFIG, offsetof(pilotConfig_t, message[4]) },
+    { "custom_msg_6", VAR_UINT8  | MASTER_VALUE | MODE_STRING, .config.string = { 1, MAX_NAME_LENGTH, STRING_FLAGS_NONE }, PG_PILOT_CONFIG, offsetof(pilotConfig_t, message[5]) },
+    { "custom_msg_7", VAR_UINT8  | MASTER_VALUE | MODE_STRING, .config.string = { 1, MAX_NAME_LENGTH, STRING_FLAGS_NONE }, PG_PILOT_CONFIG, offsetof(pilotConfig_t, message[6]) },
+    { "custom_msg_8", VAR_UINT8  | MASTER_VALUE | MODE_STRING, .config.string = { 1, MAX_NAME_LENGTH, STRING_FLAGS_NONE }, PG_PILOT_CONFIG, offsetof(pilotConfig_t, message[7]) },
 #endif
 
 // PG_POSITION

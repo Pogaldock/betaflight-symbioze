@@ -103,7 +103,22 @@ static const box_t boxes[CHECKBOX_ITEM_COUNT] = {
     { .boxId = BOXLAPTIMERRESET, .boxName = "LAP TIMER RESET", .permanentId = 54},
     { .boxId = BOXCHIRP, .boxName = "CHIRP", .permanentId = 55},
     { .boxId = BOXAUTOPILOT, .boxName = "AUTOPILOT", .permanentId = 56},
-    { .boxId = BOXWPCAPTURE, .boxName = "WP CAPTURE", .permanentId = 57}
+    { .boxId = BOXWPCAPTURE, .boxName = "WP CAPTURE", .permanentId = 57},
+    // SYMBIOZE: OSD custom message / art gating switches
+    { .boxId = BOXOSDMSG1, .boxName = "OSD MSG 1", .permanentId = 58},
+    { .boxId = BOXOSDMSG2, .boxName = "OSD MSG 2", .permanentId = 59},
+    { .boxId = BOXOSDMSG3, .boxName = "OSD MSG 3", .permanentId = 60},
+    { .boxId = BOXOSDMSG4, .boxName = "OSD MSG 4", .permanentId = 61},
+    { .boxId = BOXOSDMSG5, .boxName = "OSD MSG 5", .permanentId = 62},
+    { .boxId = BOXOSDMSG6, .boxName = "OSD MSG 6", .permanentId = 63},
+    { .boxId = BOXOSDMSG7, .boxName = "OSD MSG 7", .permanentId = 64},
+    { .boxId = BOXOSDMSG8, .boxName = "OSD MSG 8", .permanentId = 65},
+    { .boxId = BOXOSDART1, .boxName = "OSD ART 1", .permanentId = 66},
+    { .boxId = BOXOSDART2, .boxName = "OSD ART 2", .permanentId = 67},
+    { .boxId = BOXOSDART3, .boxName = "OSD ART 3", .permanentId = 68},
+    { .boxId = BOXOSDART4, .boxName = "OSD ART 4", .permanentId = 69},
+    { .boxId = BOXOSDART5, .boxName = "OSD ART 5", .permanentId = 70},
+    { .boxId = BOXOSDART6, .boxName = "OSD ART 6", .permanentId = 71}
 };
 
 // mask of enabled IDs, calculated on startup based on enabled features. boxId_e is used as bit index
@@ -376,6 +391,13 @@ void initActiveBoxIds(void)
 
 #if defined(USE_CHIRP)
     BME(BOXCHIRP);
+#endif
+
+#if defined(USE_OSD)
+    // SYMBIOZE: OSD custom message / art gating switches
+    for (boxId_e boxId = BOXOSDMSG1; boxId <= BOXOSDART6; boxId++) {
+        BME(boxId);
+    }
 #endif
 
 #undef BME

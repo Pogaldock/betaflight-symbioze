@@ -24,7 +24,9 @@
 #include "pg/pg.h"
 
 #define MAX_NAME_LENGTH 16u
-#define OSD_CUSTOM_MSG_COUNT 4
+// SYMBIOZE: 8 custom message slots (4 upstream). Slots 0-3 keep their MSP text
+// types (7-10); slots 4-7 use MSP2TEXT_CUSTOM_MSG_4 (12-15).
+#define OSD_CUSTOM_MSG_COUNT 8
 
 typedef struct pilotConfig_s {
     char craftName[MAX_NAME_LENGTH + 1];

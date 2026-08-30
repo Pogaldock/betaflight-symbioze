@@ -2739,6 +2739,21 @@ RAM_CODE static mspResult_e mspFcProcessOutCommandWithArg(mspDescriptor_t srcDes
                     textVar = currentBatteryProfile->profileName;
                     break;
 
+                // SYMBIOZE: custom messages are readable for round-tripping
+                case MSP2TEXT_CUSTOM_MSG_0:
+                case MSP2TEXT_CUSTOM_MSG_0 + 1:
+                case MSP2TEXT_CUSTOM_MSG_0 + 2:
+                case MSP2TEXT_CUSTOM_MSG_0 + 3:
+                    textVar = pilotConfigMutable()->message[textType - MSP2TEXT_CUSTOM_MSG_0];
+                    break;
+
+                case MSP2TEXT_CUSTOM_MSG_4:
+                case MSP2TEXT_CUSTOM_MSG_4 + 1:
+                case MSP2TEXT_CUSTOM_MSG_4 + 2:
+                case MSP2TEXT_CUSTOM_MSG_4 + 3:
+                    textVar = pilotConfigMutable()->message[4 + (textType - MSP2TEXT_CUSTOM_MSG_4)];
+                    break;
+
                 default:
                     return MSP_RESULT_ERROR;
             }
@@ -4464,6 +4479,21 @@ RAM_CODE static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t
                 case MSP2TEXT_CUSTOM_MSG_0 + 2:
                 case MSP2TEXT_CUSTOM_MSG_0 + 3: {
                     unsigned msgIdx = textType - MSP2TEXT_CUSTOM_MSG_0;
+                    if (msgIdx < OSD_CUSTOM_MSG_COUNT) {
+                        textVar = pilotConfigMutable()->message[msgIdx];
+                        textSpace = sizeof(pilotConfigMutable()->message[msgIdx]) - 1;
+                    } else {
+                        return MSP_RESULT_ERROR;
+                    }
+                    break;
+                }
+
+                // SYMBIOZE: custom message slots 4-7 (types 12-15)
+                case MSP2TEXT_CUSTOM_MSG_4:
+                case MSP2TEXT_CUSTOM_MSG_4 + 1:
+                case MSP2TEXT_CUSTOM_MSG_4 + 2:
+                case MSP2TEXT_CUSTOM_MSG_4 + 3: {
+                    unsigned msgIdx = 4 + (textType - MSP2TEXT_CUSTOM_MSG_4);
                     if (msgIdx < OSD_CUSTOM_MSG_COUNT) {
                         textVar = pilotConfigMutable()->message[msgIdx];
                         textSpace = sizeof(pilotConfigMutable()->message[msgIdx]) - 1;

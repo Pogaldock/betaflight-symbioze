@@ -156,6 +156,7 @@
 #include "fc/gps_lap_timer.h"
 #include "fc/rc_adjustments.h"
 #include "fc/rc_controls.h"
+#include "fc/rc_modes.h" // SYMBIOZE: AUX gating for custom msgs / art
 #include "fc/runtime_config.h"
 
 #include "flight/flight_plan_nav.h"
@@ -931,16 +932,77 @@ static void osdElementCompassBar(osdElementParms_t *element)
     element->buff[9] = 0;
 }
 
-//display custom message from MSPv2
+//display custom message from MSPv2 or CLI (SYMBIOZE: 8 slots, AUX-gatable)
 static void osdElementCustomMsg(osdElementParms_t *element)
 {
-    int msgIndex = element->item - OSD_CUSTOM_MSG0;
-    if (msgIndex < 0 || msgIndex >= OSD_CUSTOM_MSG_COUNT || pilotConfig()->message[msgIndex][0] == '\0') {
+    // SYMBIOZE: slots 0-3 are the upstream contiguous block; slots 4-7 live in
+    // a second enum range appended after OSD_BATTERY_PROFILE_NAME.
+    int msgIndex;
+    if (element->item >= OSD_CUSTOM_MSG4) {
+        msgIndex = 4 + (element->item - OSD_CUSTOM_MSG4);
+    } else {
+        msgIndex = element->item - OSD_CUSTOM_MSG0;
+    }
+
+    if (msgIndex < 0 || msgIndex >= OSD_CUSTOM_MSG_COUNT) {
+        element->drawElement = false;
+        return;
+    }
+
+    // SYMBIOZE: optional AUX gating — if a mode range is configured for this
+    // message's box, only draw while the box is active.
+    const boxId_e gate = (boxId_e)(BOXOSDMSG1 + msgIndex);
+    if (isModeActivationConditionPresent(gate) && !IS_RC_MODE_ACTIVE(gate)) {
+        element->drawElement = false;
+        return;
+    }
+
+    if (pilotConfig()->message[msgIndex][0] == '\0') {
         tfp_sprintf(element->buff, "CUSTOM_MSG%d", msgIndex + 1);
     } else {
         strncpy(element->buff, pilotConfig()->message[msgIndex], MAX_NAME_LENGTH);
         element->buff[MAX_NAME_LENGTH] = 0;   // terminate maximum-length string
     }
+}
+
+// SYMBIOZE: draw a cols x rows block of consecutive font glyphs — custom
+// frames, images and in-flight logos authored by a font editor. Rendered one
+// row per pass (like the camera frame) to bound per-cycle display writes.
+static void osdElementArt(osdElementParms_t *element)
+{
+    static uint8_t artRow[OSD_ART_COUNT] = { 0 };
+    const int artIndex = element->item - OSD_ART0;
+
+    if (artIndex < 0 || artIndex >= OSD_ART_COUNT) {
+        element->drawElement = false;
+        return;
+    }
+
+    const boxId_e gate = (boxId_e)(BOXOSDART1 + artIndex);
+    if (isModeActivationConditionPresent(gate) && !IS_RC_MODE_ACTIVE(gate)) {
+        artRow[artIndex] = 0;
+        element->drawElement = false;
+        return;
+    }
+
+    const osdArtConfig_t *art = &osdConfig()->art[artIndex];
+    const uint8_t cols = constrain(art->cols, 1, OSD_ART_MAX_COLS);
+    const uint8_t rows = constrain(art->rows, 1, OSD_ART_MAX_ROWS);
+
+    const uint8_t row = artRow[artIndex];
+    uint8_t glyph = art->glyph + (uint8_t)(row * cols); // uint8 wrap is intentional
+    for (uint8_t c = 0; c < cols; c++) {
+        osdDisplayWriteChar(element, element->elemPosX + c, element->elemPosY + row, DISPLAYPORT_SEVERITY_NORMAL, glyph++);
+    }
+
+    if (row + 1 < rows) {
+        artRow[artIndex] = row + 1;
+        element->rendered = false;  // more rows to draw on subsequent passes
+    } else {
+        artRow[artIndex] = 0;
+    }
+
+    element->drawElement = false;  // element draws itself
 }
 
 #ifdef USE_ADC_INTERNAL
@@ -2115,6 +2177,16 @@ static const uint8_t osdElementDisplayOrder[] = {
     OSD_CUSTOM_MSG1,
     OSD_CUSTOM_MSG2,
     OSD_CUSTOM_MSG3,
+    OSD_CUSTOM_MSG4, // SYMBIOZE
+    OSD_CUSTOM_MSG5, // SYMBIOZE
+    OSD_CUSTOM_MSG6, // SYMBIOZE
+    OSD_CUSTOM_MSG7, // SYMBIOZE
+    OSD_ART0,        // SYMBIOZE
+    OSD_ART1,        // SYMBIOZE
+    OSD_ART2,        // SYMBIOZE
+    OSD_ART3,        // SYMBIOZE
+    OSD_ART4,        // SYMBIOZE
+    OSD_ART5,        // SYMBIOZE
     OSD_ALTITUDE,
     OSD_ROLL_PIDS,
     OSD_PITCH_PIDS,
@@ -2227,6 +2299,16 @@ const osdElementDrawFn osdElementDrawFunction[OSD_ITEM_COUNT] = {
     [OSD_CUSTOM_MSG1]             = osdElementCustomMsg,
     [OSD_CUSTOM_MSG2]             = osdElementCustomMsg,
     [OSD_CUSTOM_MSG3]             = osdElementCustomMsg,
+    [OSD_CUSTOM_MSG4]             = osdElementCustomMsg, // SYMBIOZE
+    [OSD_CUSTOM_MSG5]             = osdElementCustomMsg, // SYMBIOZE
+    [OSD_CUSTOM_MSG6]             = osdElementCustomMsg, // SYMBIOZE
+    [OSD_CUSTOM_MSG7]             = osdElementCustomMsg, // SYMBIOZE
+    [OSD_ART0]                    = osdElementArt,       // SYMBIOZE
+    [OSD_ART1]                    = osdElementArt,       // SYMBIOZE
+    [OSD_ART2]                    = osdElementArt,       // SYMBIOZE
+    [OSD_ART3]                    = osdElementArt,       // SYMBIOZE
+    [OSD_ART4]                    = osdElementArt,       // SYMBIOZE
+    [OSD_ART5]                    = osdElementArt,       // SYMBIOZE
     [OSD_THROTTLE_POS]            = osdElementThrottlePosition,
 #ifdef USE_VTX_COMMON
     [OSD_VTX_CHANNEL]             = osdElementVtxChannel,

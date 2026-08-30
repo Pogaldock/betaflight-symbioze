@@ -209,6 +209,22 @@ typedef enum {
     OSD_CUSTOM_SERIAL_TEXT,
     OSD_BATTERY_PROFILE_NAME,
 
+    // SYMBIOZE: extra custom message slots (4-7). Slots 0-3 are the upstream
+    // OSD_CUSTOM_MSG0-3 above; the render function handles both ranges.
+    OSD_CUSTOM_MSG4,
+    OSD_CUSTOM_MSG5,
+    OSD_CUSTOM_MSG6,
+    OSD_CUSTOM_MSG7,
+
+    // SYMBIOZE: art elements — each draws a cols x rows block of consecutive
+    // font glyphs at its position (custom frames, images, in-flight logos).
+    OSD_ART0,
+    OSD_ART1,
+    OSD_ART2,
+    OSD_ART3,
+    OSD_ART4,
+    OSD_ART5,
+
 #if defined(USE_GPS) && ENABLE_FLIGHT_PLAN
     // Waypoint elements
     OSD_WP_NUMBER,              // "WP 3/12" - current/total
@@ -358,6 +374,21 @@ STATIC_ASSERT(OSD_WARNING_COUNT <= 32, osdwarnings_overflow);
 extern const uint16_t osdTimerDefault[OSD_TIMER_COUNT];
 extern const osd_stats_e osdStatsDisplayOrder[OSD_STAT_COUNT];
 
+// SYMBIOZE: art element configuration. Each art element draws `rows` display
+// rows of `cols` consecutive font glyphs starting at `glyph` (row-major), so a
+// glyph block prepared by a font editor renders as one picture. Position and
+// per-profile visibility use the standard item_pos mechanism; an optional AUX
+// mode (BOXOSDART1 + index) gates drawing when a range is configured.
+#define OSD_ART_COUNT 6
+#define OSD_ART_MAX_COLS 63
+#define OSD_ART_MAX_ROWS 20
+
+typedef struct osdArtConfig_s {
+    uint8_t glyph;                            // first glyph code of the block (1-255)
+    uint8_t cols;                             // block width in glyph cells
+    uint8_t rows;                             // block height in glyph cells
+} osdArtConfig_t;
+
 typedef struct osdConfig_s {
     // Alarms
     uint16_t cap_alarm;
@@ -412,6 +443,7 @@ typedef struct osdConfig_s {
     int8_t osd_uart;                          // serialPortIdentifier_e; SERIAL_PORT_NONE = unassigned. Bit chosen by displayPortDevice (FRSKYOSD=FUNCTION_FRSKY_OSD, else none).
     int8_t osd_custom_text_uart;              // serialPortIdentifier_e; SERIAL_PORT_NONE = unassigned.  Always maps to FUNCTION_OSD_CUSTOM_TEXT when set.
     uint8_t osd_custom_text_baud;             // baudRate_e index for osd_custom_text_uart
+    osdArtConfig_t art[OSD_ART_COUNT];        // SYMBIOZE: art element glyph blocks
 } osdConfig_t;
 
 PG_DECLARE(osdConfig_t, osdConfig);

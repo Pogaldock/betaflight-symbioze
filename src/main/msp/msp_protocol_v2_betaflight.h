@@ -52,4 +52,8 @@
 #define MSP2TEXT_CUSTOM_MSG_0                    7  // CUSTOM_MSG_MAX_NUM  entries are allocated
 #define CUSTOM_MSG_MAX_NUM                       4
 #define MSP2TEXT_BATTERY_PROFILE_NAME        11
-// next new variable type must be >= MSP2TEXT_BATTERY_PROFILE_NAME + 1 (12)
+// SYMBIOZE: custom message slots 4-7 use types 12-15 (slots 0-3 keep 7-10;
+// type 11 was already taken by BATTERY_PROFILE_NAME, so the original range
+// cannot be extended in place).
+#define MSP2TEXT_CUSTOM_MSG_4                12
+// next new variable type must be >= MSP2TEXT_CUSTOM_MSG_4 + 4 (16)
