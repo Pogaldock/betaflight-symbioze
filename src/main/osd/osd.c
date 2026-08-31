@@ -157,9 +157,9 @@ escSensorData_t *osdEscDataCombined;
 
 STATIC_ASSERT(OSD_POS_MAX == OSD_POS(63,31), OSD_POS_MAX_incorrect);
 
-PG_REGISTER_WITH_RESET_FN(osdConfig_t, osdConfig, PG_OSD_CONFIG, 14); // SYMBIOZE: v14 = art animation (frames/period)
+PG_REGISTER_WITH_RESET_FN(osdConfig_t, osdConfig, PG_OSD_CONFIG, 15); // SYMBIOZE: v15 = 10 art slots + stride/blink/source + cell-map pool
 
-PG_REGISTER_WITH_RESET_FN(osdElementConfig_t, osdElementConfig, PG_OSD_ELEMENT_CONFIG, 3); // SYMBIOZE: v3 = item_pos[] grew by OSD_CUSTOM_MSG0..3 (v2 added the art elements)
+PG_REGISTER_WITH_RESET_FN(osdElementConfig_t, osdElementConfig, PG_OSD_ELEMENT_CONFIG, 4); // SYMBIOZE: v4 = item_pos[] grew to 10 art slots (v3 msgs, v2 art)
 
 // Controls the display order of the OSD post-flight statistics.
 // Adjust the ordering here to control how the post-flight stats are presented.
@@ -440,6 +440,11 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
         osdConfig->art[i].rows = 4;
         osdConfig->art[i].frames = 1;  // static by default
         osdConfig->art[i].period = 5;  // 0.5 s per frame when animated
+        osdConfig->art[i].stride = 0;  // 0 = full block (cols*rows) per frame
+        osdConfig->art[i].blink = 0;
+        osdConfig->art[i].source = 0;  // OSD_ART_SOURCE_TIME
+        osdConfig->art[i].mapped = 0;
+        osdConfig->artMapStart[i] = 0;
     }
 }
 

@@ -88,6 +88,10 @@ typedef enum {
     BOXOSDART4,
     BOXOSDART5,
     BOXOSDART6,
+    BOXOSDART7,
+    BOXOSDART8,
+    BOXOSDART9,
+    BOXOSDART10,
     CHECKBOX_ITEM_COUNT
 } boxId_e;
 

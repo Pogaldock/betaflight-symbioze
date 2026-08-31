@@ -197,6 +197,10 @@ typedef enum {
     OSD_ART3,
     OSD_ART4,
     OSD_ART5,
+    OSD_ART6,
+    OSD_ART7,
+    OSD_ART8,
+    OSD_ART9,
     // SYMBIOZE: positionable custom messages (set via CLI custom_msg_N /
     // osdmsg, or MSP2_SET_TEXT — arbitrary glyph bytes allowed)
     OSD_CUSTOM_MSG0,
@@ -369,20 +373,38 @@ typedef struct osdConfig_s {
 #ifdef USE_SPEC_PREARM_SCREEN
     uint8_t osd_show_spec_prearm;
 #endif // USE_SPEC_PREARM_SCREEN
-    // SYMBIOZE: art element glyph blocks (see OSD_ART0..5)
+    // SYMBIOZE: art element glyph blocks (see OSD_ART0..9)
     struct {
         uint8_t glyph;                        // first glyph code of the block (1-255)
         uint8_t cols;                         // block width in glyph cells
         uint8_t rows;                         // block height in glyph cells
-        uint8_t frames;                       // flipbook frames drawn from consecutive blocks (1 = static)
+        uint8_t frames;                       // flipbook frames (1 = static)
         uint8_t period;                       // frame period in tenths of a second
-    } art[6];
+        uint8_t stride;                       // slots a frame advances (0 = cols*rows). stride=cols -> vertical scroll; rows=1 + stride=1 -> ticker
+        uint8_t blink;                        // draw with the chip's native blink attribute (free per-cell flashing)
+        uint8_t source;                       // frame driver: time / throttle / rssi / battery (osdArtSource_e)
+        uint8_t mapped;                       // 1 = per-cell glyph indices come from artMapPool (dedup mode)
+    } art[10];
+    // SYMBIOZE: shared per-cell glyph index pool for mapped art (dedup). The
+    // app allocates regions; each mapped art element reads
+    // artMapPool[artMapStart[n] + frame*cols*rows + row*cols + col].
+    uint16_t artMapStart[10];
+    uint8_t artMapPool[384];
 } osdConfig_t;
 
-// SYMBIOZE: art element geometry limits (SD MAX7456: 30 cols x 16 rows)
-#define OSD_ART_COUNT 6
+// SYMBIOZE: art element limits (SD MAX7456: 30 cols x 16 rows)
+#define OSD_ART_COUNT 10
 #define OSD_ART_MAX_COLS 30
 #define OSD_ART_MAX_ROWS 16
+#define OSD_ART_MAP_POOL 384
+
+// SYMBIOZE: what drives an art element's frame index
+typedef enum {
+    OSD_ART_SOURCE_TIME = 0,   // wall clock (classic flipbook)
+    OSD_ART_SOURCE_THROTTLE,   // throttle percent -> frame
+    OSD_ART_SOURCE_RSSI,       // link strength -> frame
+    OSD_ART_SOURCE_BATTERY,    // battery percent remaining -> frame
+} osdArtSource_e;
 
 PG_DECLARE(osdConfig_t, osdConfig);
 

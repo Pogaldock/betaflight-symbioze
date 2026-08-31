@@ -109,6 +109,10 @@ static const box_t boxes[CHECKBOX_ITEM_COUNT] = {
     { .boxId = BOXOSDART4, .boxName = "OSD ART 4", .permanentId = 58},
     { .boxId = BOXOSDART5, .boxName = "OSD ART 5", .permanentId = 59},
     { .boxId = BOXOSDART6, .boxName = "OSD ART 6", .permanentId = 60},
+    { .boxId = BOXOSDART7, .boxName = "OSD ART 7", .permanentId = 61},
+    { .boxId = BOXOSDART8, .boxName = "OSD ART 8", .permanentId = 62},
+    { .boxId = BOXOSDART9, .boxName = "OSD ART 9", .permanentId = 63},
+    { .boxId = BOXOSDART10, .boxName = "OSD ART 10", .permanentId = 64},
 };
 
 // mask of enabled IDs, calculated on startup based on enabled features. boxId_e is used as bit index
@@ -352,7 +356,7 @@ void initActiveBoxIds(void)
 
 #if defined(USE_OSD)
     // SYMBIOZE: OSD art gating switches
-    for (boxId_e boxId = BOXOSDART1; boxId <= BOXOSDART6; boxId++) {
+    for (boxId_e boxId = BOXOSDART1; boxId <= BOXOSDART10; boxId++) {
         BME(boxId);
     }
 #endif

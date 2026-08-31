@@ -374,6 +374,10 @@ static void cliPutp(void *p, char ch)
     bufWriterAppend(p, ch);
 }
 
+#ifdef USE_OSD
+static void printArtMaps(dumpFlags_t dumpMask, const char *headingStr); // SYMBIOZE
+#endif
+
 static void cliPrintfva(const char *format, va_list va)
 {
     if (cliWriter) {
@@ -6320,6 +6324,10 @@ static void printConfig(const char *cmdName, char *cmdline, bool doDiff)
             printVtxTable(dumpMask, &vtxTableConfig_Copy, vtxTableConfig(), "vtxtable");
 #endif
 
+#ifdef USE_OSD
+            printArtMaps(dumpMask, "artmap"); // SYMBIOZE: cell maps survive backup/restore
+#endif
+
 #ifdef USE_VTX_CONTROL
             printVtx(dumpMask, &vtxConfig_Copy, vtxConfig(), "vtx");
 #endif
@@ -6457,6 +6465,77 @@ typedef struct {
 #endif
 
 #ifdef USE_OSD
+// SYMBIOZE: `artmap` — read/write the shared art cell-map pool (dedup mode).
+//   artmap                    -> print pool regions used by mapped art elements
+//   artmap <offset> <hex..>   -> write bytes at pool offset (e.g. artmap 0 A0A1A1B4)
+static void cliArtMapPrintRegion(uint16_t start, uint16_t len)
+{
+    for (uint16_t off = 0; off < len; off += 24) {
+        cliPrintf("artmap %u ", (unsigned)(start + off));
+        const uint16_t n = MIN((uint16_t)24, (uint16_t)(len - off));
+        for (uint16_t i = 0; i < n; i++) {
+            cliPrintf("%02X", osdConfig()->artMapPool[start + off + i]);
+        }
+        cliPrintLinefeed();
+    }
+}
+
+static void cliArtMap(const char *cmdName, char *cmdline)
+{
+    char *p = cmdline;
+    while (*p == ' ') p++;
+
+    if (*p == '\0') {
+        for (int i = 0; i < OSD_ART_COUNT; i++) {
+            if (!osdConfig()->art[i].mapped) continue;
+            const uint16_t len = osdConfig()->art[i].cols * osdConfig()->art[i].rows
+                * MAX(1, osdConfig()->art[i].frames);
+            cliPrintLinef("# art %d map @%u (%u cells)", i + 1,
+                (unsigned)osdConfig()->artMapStart[i], (unsigned)len);
+            cliArtMapPrintRegion(osdConfig()->artMapStart[i], MIN(len, (uint16_t)OSD_ART_MAP_POOL));
+        }
+        return;
+    }
+
+    const int offset = atoi(p);
+    if (offset < 0 || offset >= OSD_ART_MAP_POOL) {
+        cliPrintErrorLinef(cmdName, "OFFSET OUTSIDE OF [0..%d]", OSD_ART_MAP_POOL - 1);
+        return;
+    }
+    while (*p && *p != ' ') p++;
+    while (*p == ' ') p++;
+
+    int written = 0;
+    while (isxdigit((unsigned char)p[0]) && isxdigit((unsigned char)p[1]) && offset + written < OSD_ART_MAP_POOL) {
+        const char hex[3] = { p[0], p[1], '\0' };
+        osdConfigMutable()->artMapPool[offset + written] = (uint8_t)strtoul(hex, NULL, 16);
+        written++;
+        p += 2;
+    }
+    if (written == 0) {
+        cliPrintErrorLinef(cmdName, "EXPECTED HEX BYTES");
+        return;
+    }
+    cliPrintLinef("wrote %d bytes at %d", written, offset);
+}
+
+// SYMBIOZE: emit `artmap` lines in dump/diff so backups carry the cell maps.
+static void printArtMaps(dumpFlags_t dumpMask, const char *headingStr)
+{
+    UNUSED(dumpMask);
+    bool headingPrinted = false;
+    for (int i = 0; i < OSD_ART_COUNT; i++) {
+        if (!osdConfig()->art[i].mapped) continue;
+        if (!headingPrinted && headingStr) {
+            cliPrintHashLine(headingStr);
+            headingPrinted = true;
+        }
+        const uint16_t len = osdConfig()->art[i].cols * osdConfig()->art[i].rows
+            * MAX(1, osdConfig()->art[i].frames);
+        cliArtMapPrintRegion(osdConfig()->artMapStart[i], MIN(len, (uint16_t)OSD_ART_MAP_POOL));
+    }
+}
+
 // SYMBIOZE: `osdmsg` — set custom message slots with raw glyph escapes.
 //   osdmsg                -> list all slots
 //   osdmsg <1-4>          -> show one slot
@@ -6543,6 +6622,9 @@ static void cliHelp(const char *cmdName, char *cmdline);
 // should be sorted a..z for bsearch()
 const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("adjrange", "configure adjustment ranges", "<index> <unused> <range channel> <start> <end> <function> <select channel> [<center> <scale>]", cliAdjustmentRange),
+#ifdef USE_OSD
+    CLI_COMMAND_DEF("artmap", "art cell-map pool (dedup)", "[<offset> <hexbytes>]", cliArtMap),
+#endif
     CLI_COMMAND_DEF("aux", "configure modes", "<index> <mode> <aux> <start> <end> <logic>", cliAux),
 #ifdef USE_CLI_BATCH
     CLI_COMMAND_DEF("batch", "start or end a batch of commands", "start | end", cliBatch),

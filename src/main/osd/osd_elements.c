@@ -1811,6 +1811,10 @@ static const uint8_t osdElementDisplayOrder[] = {
     OSD_ART3, // SYMBIOZE
     OSD_ART4, // SYMBIOZE
     OSD_ART5, // SYMBIOZE
+    OSD_ART6, // SYMBIOZE
+    OSD_ART7, // SYMBIOZE
+    OSD_ART8, // SYMBIOZE
+    OSD_ART9, // SYMBIOZE
     OSD_CUSTOM_MSG0, // SYMBIOZE
     OSD_CUSTOM_MSG1, // SYMBIOZE
     OSD_CUSTOM_MSG2, // SYMBIOZE
@@ -1921,20 +1925,60 @@ static void osdElementArt(osdElementParms_t *element)
     const uint8_t rows = constrain(osdConfig()->art[artIndex].rows, 1, OSD_ART_MAX_ROWS);
     const uint8_t base = osdConfig()->art[artIndex].glyph;
 
-    // SYMBIOZE: flipbook animation — cycle through `frames` consecutive
-    // blocks of cols x rows glyphs, advancing every `period` tenths of a
-    // second. frames = 1 (default) draws a static block as before.
+    // SYMBIOZE: frame index — wall clock (classic flipbook) or a live value
+    // (throttle / RSSI / battery), turning the flipbook into an animated gauge.
     const uint8_t frames = MAX(1, osdConfig()->art[artIndex].frames);
     uint8_t frame = 0;
     if (frames > 1) {
-        const uint32_t periodMs = MAX(1, osdConfig()->art[artIndex].period) * 100;
-        frame = (millis() / periodMs) % frames;
+        int value = -1;
+        switch (osdConfig()->art[artIndex].source) {
+        case OSD_ART_SOURCE_THROTTLE:
+            value = calculateThrottlePercent();
+            break;
+        case OSD_ART_SOURCE_RSSI:
+            value = getRssiPercent();
+            break;
+        case OSD_ART_SOURCE_BATTERY:
+            value = calculateBatteryPercentageRemaining();
+            break;
+        default:
+            break;
+        }
+        if (value >= 0) {
+            frame = constrain(value * frames / 101, 0, frames - 1);
+        } else {
+            const uint32_t periodMs = MAX(1, osdConfig()->art[artIndex].period) * 100;
+            frame = (millis() / periodMs) % frames;
+        }
     }
 
+    // SYMBIOZE: stride lets frames OVERLAP in slot space. stride = cols is a
+    // vertical scroller; rows = 1 + stride = 1 is a horizontal ticker. N frames
+    // then cost block + stride*(N-1) slots instead of block*N. 0 = full block.
+    const uint16_t strideCfg = osdConfig()->art[artIndex].stride;
+    const uint16_t stride = strideCfg ? strideCfg : (uint16_t)(cols * rows);
+
+    // SYMBIOZE: mapped mode — per-cell glyph indices come from the shared
+    // pool, so identical cells (blank sky, repeated texture, unchanged frame
+    // regions) share ONE font slot. The app packs the pool.
+    const bool mapped = osdConfig()->art[artIndex].mapped != 0;
+    const uint16_t mapStart = osdConfig()->artMapStart[artIndex];
+
+    // SYMBIOZE: the chip's native blink attribute — free per-cell flashing.
+    const uint8_t attr = osdConfig()->art[artIndex].blink
+        ? (DISPLAYPORT_SEVERITY_NORMAL | DISPLAYPORT_BLINK)
+        : DISPLAYPORT_SEVERITY_NORMAL;
+
     const uint8_t row = artRow[artIndex];
-    uint8_t glyph = base + (uint8_t)(frame * cols * rows + row * cols); // uint8 wrap is intentional
     for (uint8_t c = 0; c < cols; c++) {
-        osdDisplayWriteChar(element, element->elemPosX + c, element->elemPosY + row, DISPLAYPORT_SEVERITY_NORMAL, glyph++);
+        uint8_t glyph;
+        if (mapped) {
+            const uint32_t idx = (uint32_t)mapStart + (uint32_t)frame * cols * rows + (uint32_t)row * cols + c;
+            glyph = idx < OSD_ART_MAP_POOL ? osdConfig()->artMapPool[idx] : base;
+        } else {
+            glyph = base + (uint8_t)(frame * stride + row * cols + c); // uint8 wrap intentional
+        }
+        osdDisplayWriteChar(element, element->elemPosX + c, element->elemPosY + row, attr, glyph);
     }
 
     if (row + 1 < rows) {
@@ -1957,6 +2001,10 @@ const osdElementDrawFn osdElementDrawFunction[OSD_ITEM_COUNT] = {
     [OSD_ART3]                   = osdElementArt, // SYMBIOZE
     [OSD_ART4]                   = osdElementArt, // SYMBIOZE
     [OSD_ART5]                   = osdElementArt, // SYMBIOZE
+    [OSD_ART6]                   = osdElementArt, // SYMBIOZE
+    [OSD_ART7]                   = osdElementArt, // SYMBIOZE
+    [OSD_ART8]                   = osdElementArt, // SYMBIOZE
+    [OSD_ART9]                   = osdElementArt, // SYMBIOZE
     [OSD_CUSTOM_MSG0]            = osdElementCustomMsg, // SYMBIOZE
     [OSD_CUSTOM_MSG1]            = osdElementCustomMsg, // SYMBIOZE
     [OSD_CUSTOM_MSG2]            = osdElementCustomMsg, // SYMBIOZE

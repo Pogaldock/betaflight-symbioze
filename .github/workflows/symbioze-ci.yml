@@ -59,8 +59,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG=symbioze-air65-g473-v5
+          TAG=symbioze-air65-g473-v6
           gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" \
-            --title "Symbioze OSD — BetaFPV Air65 v5: proven analog-OSD defaults" --prerelease \
-            --notes "BetaFPV Air65 (BETAFPVG473) on Betaflight 4.5.6 + full Symbioze OSD suite. v4 adds: 4 positionable CUSTOM MESSAGES (CLI custom_msg_N / osdmsg with \xNN glyph escapes / MSP), ART ANIMATION (osd_artN_frames + osd_artN_period — flipbook cycling of consecutive glyph blocks), and CUSTOM ARMED/DISARMED TEXT (osd_armed_text / osd_disarmed_text). Factory config still baked in (boots flying-ready). Flash with Full chip erase, re-upload your font, apply your layout."
+            --title "Symbioze OSD — BetaFPV Air65 v6: maps, stride, gauges, 10 slots" --prerelease \
+            --notes "BetaFPV Air65 (BETAFPVG473) on Betaflight 4.5.6 + the full Symbioze OSD suite. v6 — the capacity release: 10 art slots (OSD ART 1-10 AUX boxes); osd_artN_stride (overlapping frames: stride=cols vertical scroller, rows=1 stride=1 ticker); CELL MAPS (osd_artN_mapped + osd_artN_mapstart + 384-byte artmap pool, artmap CLI command, included in diff/dump) so identical cells share one font slot; osd_artN_blink (native chip blink, zero glyph cost); osd_artN_source = TIME/THROTTLE/RSSI/BATTERY (data-driven frames = animated gauges). Plus v4 messages + custom armed text and the baked flying-ready factory config. Flash with Full chip erase."
           gh release upload "$TAG" out/*.hex --clobber
