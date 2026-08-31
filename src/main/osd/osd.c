@@ -157,7 +157,7 @@ escSensorData_t *osdEscDataCombined;
 
 STATIC_ASSERT(OSD_POS_MAX == OSD_POS(63,31), OSD_POS_MAX_incorrect);
 
-PG_REGISTER_WITH_RESET_FN(osdConfig_t, osdConfig, PG_OSD_CONFIG, 15); // SYMBIOZE: v15 = 10 art slots + stride/blink/source + cell-map pool
+PG_REGISTER_WITH_RESET_FN(osdConfig_t, osdConfig, PG_OSD_CONFIG, 16); // SYMBIOZE: v16 = 1KB map pool + frame sequences
 
 PG_REGISTER_WITH_RESET_FN(osdElementConfig_t, osdElementConfig, PG_OSD_ELEMENT_CONFIG, 4); // SYMBIOZE: v4 = item_pos[] grew to 10 art slots (v3 msgs, v2 art)
 
@@ -445,6 +445,7 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
         osdConfig->art[i].source = 0;  // OSD_ART_SOURCE_TIME
         osdConfig->art[i].mapped = 0;
         osdConfig->artMapStart[i] = 0;
+        osdConfig->artSeqLen[i] = 0;   // v7: no sequence — play 0..frames-1
     }
 }
 

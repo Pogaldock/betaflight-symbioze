@@ -389,14 +389,20 @@ typedef struct osdConfig_s {
     // app allocates regions; each mapped art element reads
     // artMapPool[artMapStart[n] + frame*cols*rows + row*cols + col].
     uint16_t artMapStart[10];
-    uint8_t artMapPool[384];
+    uint8_t artMapPool[1024];
+    // SYMBIOZE v7: optional per-element frame sequence — the flipbook plays
+    // artSeq[n][0..artSeqLen[n]-1] instead of 0..frames-1, enabling ping-pong
+    // (0 1 2 3 2 1), holds (0 0 0 1) and arbitrary orders. 0 = off.
+    uint8_t artSeqLen[10];
+    uint8_t artSeq[10][16];
 } osdConfig_t;
 
 // SYMBIOZE: art element limits (SD MAX7456: 30 cols x 16 rows)
 #define OSD_ART_COUNT 10
 #define OSD_ART_MAX_COLS 30
 #define OSD_ART_MAX_ROWS 16
-#define OSD_ART_MAP_POOL 384
+#define OSD_ART_MAP_POOL 1024
+#define OSD_ART_SEQ_MAX 16
 
 // SYMBIOZE: what drives an art element's frame index
 typedef enum {

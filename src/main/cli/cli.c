@@ -79,6 +79,9 @@ bool cliMode = false;
 #include "drivers/io.h"
 #include "drivers/io_impl.h"
 #include "drivers/light_led.h"
+#ifdef USE_MAX7456
+#include "drivers/max7456.h" // SYMBIOZE v7: page-2 bench probe
+#endif
 #include "drivers/motor.h"
 #include "drivers/rangefinder/rangefinder_hcsr04.h"
 #include "drivers/resource.h"
@@ -376,6 +379,7 @@ static void cliPutp(void *p, char ch)
 
 #ifdef USE_OSD
 static void printArtMaps(dumpFlags_t dumpMask, const char *headingStr); // SYMBIOZE
+static void printArtSeqs(dumpFlags_t dumpMask, const char *headingStr); // SYMBIOZE v7
 #endif
 
 static void cliPrintfva(const char *format, va_list va)
@@ -6326,6 +6330,7 @@ static void printConfig(const char *cmdName, char *cmdline, bool doDiff)
 
 #ifdef USE_OSD
             printArtMaps(dumpMask, "artmap"); // SYMBIOZE: cell maps survive backup/restore
+            printArtSeqs(dumpMask, "artseq"); // SYMBIOZE v7: frame sequences too
 #endif
 
 #ifdef USE_VTX_CONTROL
@@ -6536,6 +6541,140 @@ static void printArtMaps(dumpFlags_t dumpMask, const char *headingStr)
     }
 }
 
+// SYMBIOZE v7: `artseq` — per-element frame play order (ping-pong, holds).
+//   artseq                  -> print sequences for elements that have one
+//   artseq <1-10> -         -> clear (element plays 0..frames-1 as usual)
+//   artseq <1-10> <f0> ...  -> up to 16 frame indices, e.g. artseq 1 0 1 2 3 2 1
+static void cliArtSeqPrintOne(int i)
+{
+    cliPrintf("artseq %d", i + 1);
+    for (int s = 0; s < osdConfig()->artSeqLen[i]; s++) {
+        cliPrintf(" %u", (unsigned)osdConfig()->artSeq[i][s]);
+    }
+    cliPrintLinefeed();
+}
+
+static void cliArtSeq(const char *cmdName, char *cmdline)
+{
+    char *p = cmdline;
+    while (*p == ' ') p++;
+
+    if (*p == '\0') {
+        for (int i = 0; i < OSD_ART_COUNT; i++) {
+            if (osdConfig()->artSeqLen[i]) {
+                cliArtSeqPrintOne(i);
+            }
+        }
+        return;
+    }
+
+    const int element = atoi(p) - 1;
+    if (element < 0 || element >= OSD_ART_COUNT) {
+        cliPrintErrorLinef(cmdName, "ELEMENT OUTSIDE OF [1..%d]", OSD_ART_COUNT);
+        return;
+    }
+    while (*p && *p != ' ') p++;
+    while (*p == ' ') p++;
+
+    if (*p == '\0') {
+        cliArtSeqPrintOne(element);
+        return;
+    }
+    if (*p == '-') {
+        osdConfigMutable()->artSeqLen[element] = 0;
+        cliPrintLinef("art %d sequence cleared", element + 1);
+        return;
+    }
+
+    uint8_t len = 0;
+    while (*p && len < OSD_ART_SEQ_MAX) {
+        const int frame = atoi(p);
+        if (frame < 0 || frame > 63) {
+            cliPrintErrorLinef(cmdName, "FRAME OUTSIDE OF [0..63]");
+            return;
+        }
+        osdConfigMutable()->artSeq[element][len++] = (uint8_t)frame;
+        while (*p && *p != ' ') p++;
+        while (*p == ' ') p++;
+    }
+    osdConfigMutable()->artSeqLen[element] = len;
+    cliArtSeqPrintOne(element);
+}
+
+// SYMBIOZE v7: emit `artseq` lines in dump/diff so backups carry sequences.
+static void printArtSeqs(dumpFlags_t dumpMask, const char *headingStr)
+{
+    UNUSED(dumpMask);
+    bool headingPrinted = false;
+    for (int i = 0; i < OSD_ART_COUNT; i++) {
+        if (!osdConfig()->artSeqLen[i]) continue;
+        if (!headingPrinted && headingStr) {
+            cliPrintHashLine(headingStr);
+            headingPrinted = true;
+        }
+        cliArtSeqPrintOne(i);
+    }
+}
+
+#ifdef USE_MAX7456
+// SYMBIOZE v7: `page2` — AT7456E bench probe. The chip stores 512 glyphs and
+// we can UPLOAD to page 2 (CA[8] = CMAL[6]), but how the DISPLAY side selects
+// a page-2 glyph is undocumented. This command uploads a checkerboard to
+// page-2 slot (256+code), then draws <code> mid-screen with a candidate
+// attribute. If the checkerboard appears instead of the normal glyph, that
+// attribute selects page 2 — report the winning value!
+//   page2 attr <0-255> [code]  -> probe display attribute byte (8-bit mode)
+//   page2 dmm <0-255> [code]   -> probe DMM register bits (16-bit mode)
+//   page2 off                  -> repaint the screen normally
+static void cliPage2(const char *cmdName, char *cmdline)
+{
+    char *p = cmdline;
+    while (*p == ' ') p++;
+
+    if (strncasecmp(p, "off", 3) == 0) {
+        max7456DebugRepaint();
+        cliPrintLine("repainting");
+        return;
+    }
+
+    bool useAttrByte;
+    if (strncasecmp(p, "attr", 4) == 0) {
+        useAttrByte = true;
+        p += 4;
+    } else if (strncasecmp(p, "dmm", 3) == 0) {
+        useAttrByte = false;
+        p += 3;
+    } else {
+        cliPrintErrorLinef(cmdName, "EXPECTED attr|dmm|off");
+        return;
+    }
+    while (*p == ' ') p++;
+    const int attr = atoi(p);
+    if (attr < 0 || attr > 255) {
+        cliPrintErrorLinef(cmdName, "VALUE OUTSIDE OF [0..255]");
+        return;
+    }
+    while (*p && *p != ' ') p++;
+    while (*p == ' ') p++;
+    const int code = *p ? constrain(atoi(p), 1, 255) : 0x41;
+
+    // page-2 glyph: 1-px checkerboard (also the strongest artifact-color
+    // pattern) — unmistakable next to any normal font glyph
+    uint8_t checker[54];
+    for (int i = 0; i < 54; i++) {
+        checker[i] = ((i / 3) & 1) ? 0x88 : 0x22;
+    }
+    if (!max7456WriteNvm(0x100 | code, checker)) {
+        cliPrintErrorLinef(cmdName, "PAGE-2 NVM WRITE REFUSED (NOT AN AT7456E?)");
+        return;
+    }
+    const uint16_t pos = 30 * 6 + 12; // mid-screen
+    max7456DebugWriteCell(pos, (uint8_t)code, (uint8_t)attr, useAttrByte);
+    cliPrintLinef("glyph 0x%02X drawn with %s=0x%02X — checkerboard on screen means PAGE 2. `page2 off` to clean up",
+        code, useAttrByte ? "attr" : "dmm", attr);
+}
+#endif
+
 // SYMBIOZE: `osdmsg` — set custom message slots with raw glyph escapes.
 //   osdmsg                -> list all slots
 //   osdmsg <1-4>          -> show one slot
@@ -6624,6 +6763,7 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("adjrange", "configure adjustment ranges", "<index> <unused> <range channel> <start> <end> <function> <select channel> [<center> <scale>]", cliAdjustmentRange),
 #ifdef USE_OSD
     CLI_COMMAND_DEF("artmap", "art cell-map pool (dedup)", "[<offset> <hexbytes>]", cliArtMap),
+    CLI_COMMAND_DEF("artseq", "art frame sequence (ping-pong, holds)", "[<1-10>] [<frames...>|-]", cliArtSeq),
 #endif
     CLI_COMMAND_DEF("aux", "configure modes", "<index> <mode> <aux> <start> <end> <logic>", cliAux),
 #ifdef USE_CLI_BATCH
@@ -6723,6 +6863,9 @@ const clicmd_t cmdTable[] = {
 #endif
 #ifdef USE_OSD
     CLI_COMMAND_DEF("osdmsg", "set custom OSD message (\\xNN glyph escapes)", "[<1-4>] [<text>|-]", cliOsdMsg),
+#endif
+#if defined(USE_OSD) && defined(USE_MAX7456)
+    CLI_COMMAND_DEF("page2", "AT7456E page-2 display probe", "attr|dmm <0-255> [code] | off", cliPage2),
 #endif
 #ifndef MINIMAL_CLI
     CLI_COMMAND_DEF("play_sound", NULL, "[<index>]", cliPlaySound),

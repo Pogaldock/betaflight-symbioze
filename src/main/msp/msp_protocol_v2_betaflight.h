@@ -39,3 +39,6 @@
 #define MSP2TEXT_RELEASENAME                     6
 // SYMBIOZE: custom message slots (matches mainline numbering: 7..7+OSD_CUSTOM_MSG_COUNT-1)
 #define MSP2TEXT_CUSTOM_MSG_0                    7
+// SYMBIOZE: feature-set version probe — GET returns the symbioze suite version
+// (e.g. "7"); mainline errors on the unknown type, which reads as "absent"
+#define MSP2TEXT_SYMBIOZE_VERSION                250

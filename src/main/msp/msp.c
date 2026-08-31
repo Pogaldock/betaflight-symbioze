@@ -2585,6 +2585,11 @@ static mspResult_e mspFcProcessOutCommandWithArg(mspDescriptor_t srcDesc, int16_
                     textVar = pilotConfigMutable()->message[textType - MSP2TEXT_CUSTOM_MSG_0];
                     break;
 
+                // SYMBIOZE: feature-set probe for the font editor wizard
+                case MSP2TEXT_SYMBIOZE_VERSION:
+                    textVar = "7";
+                    break;
+
                 default:
                     return MSP_RESULT_ERROR;
             }

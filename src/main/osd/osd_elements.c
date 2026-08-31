@@ -1948,7 +1948,15 @@ static void osdElementArt(osdElementParms_t *element)
             frame = constrain(value * frames / 101, 0, frames - 1);
         } else {
             const uint32_t periodMs = MAX(1, osdConfig()->art[artIndex].period) * 100;
-            frame = (millis() / periodMs) % frames;
+            // SYMBIOZE v7: an explicit frame sequence (ping-pong, holds, any
+            // order) overrides the plain 0..frames-1 clock walk.
+            const uint8_t seqLen = MIN(osdConfig()->artSeqLen[artIndex], (uint8_t)OSD_ART_SEQ_MAX);
+            if (seqLen > 0) {
+                const uint8_t step = (millis() / periodMs) % seqLen;
+                frame = MIN(osdConfig()->artSeq[artIndex][step], (uint8_t)(frames - 1));
+            } else {
+                frame = (millis() / periodMs) % frames;
+            }
         }
     }
 

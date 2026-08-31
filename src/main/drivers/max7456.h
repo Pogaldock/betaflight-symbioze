@@ -49,7 +49,9 @@ void    max7456Invert(bool invert);
 void    max7456Brightness(uint8_t black, uint8_t white);
 bool    max7456ReInitIfRequired(bool forceStallCheck);
 bool     max7456DrawScreen(void);
-bool    max7456WriteNvm(uint8_t char_address, const uint8_t *font_data);
+bool    max7456WriteNvm(uint16_t char_address, const uint8_t *font_data); // SYMBIOZE v7: u16 — AT7456E page 2 (256-511)
+bool    max7456DebugWriteCell(uint16_t pos, uint8_t chr, uint8_t attr, bool useAttrByte); // SYMBIOZE v7: page-2 bench probe
+void    max7456DebugRepaint(void); // SYMBIOZE v7: repaint everything after probing
 uint8_t max7456GetRowsCount(void);
 void    max7456Write(uint8_t x, uint8_t y, const char *text);
 void    max7456WriteChar(uint8_t x, uint8_t y, uint8_t c);

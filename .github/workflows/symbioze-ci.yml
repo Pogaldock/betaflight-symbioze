@@ -59,8 +59,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG=symbioze-air65-g473-v6
+          TAG=symbioze-air65-g473-v7
           gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" \
-            --title "Symbioze OSD — BetaFPV Air65 v6: maps, stride, gauges, 10 slots" --prerelease \
-            --notes "BetaFPV Air65 (BETAFPVG473) on Betaflight 4.5.6 + the full Symbioze OSD suite. v6 — the capacity release: 10 art slots (OSD ART 1-10 AUX boxes); osd_artN_stride (overlapping frames: stride=cols vertical scroller, rows=1 stride=1 ticker); CELL MAPS (osd_artN_mapped + osd_artN_mapstart + 384-byte artmap pool, artmap CLI command, included in diff/dump) so identical cells share one font slot; osd_artN_blink (native chip blink, zero glyph cost); osd_artN_source = TIME/THROTTLE/RSSI/BATTERY (data-driven frames = animated gauges). Plus v4 messages + custom armed text and the baked flying-ready factory config. Flash with Full chip erase."
+            --title "Symbioze OSD — BetaFPV Air65 v7: 1KB pool, sequences, page-2 probe" --prerelease \
+            --notes "BetaFPV Air65 (BETAFPVG473) on Betaflight 4.5.6 + the full Symbioze OSD suite. v7: artmap pool 384 -> 1024 bytes (mapped GIFs nearly 3x bigger); artseq CLI command (per-element frame sequences: ping-pong 0 1 2 3 2 1, holds 0 0 0 1 — in diff/dump); AT7456E PAGE-2 support (font uploads to glyphs 256-511 via 16-bit MSP addresses) + page2 CLI bench probe to hunt the display-side page-select bit (page2 attr/dmm <val>); MSP2 feature probe (text type 250 returns suite version). All v6 features included: 10 art slots, stride scrollers, cell maps, native blink, telemetry-driven gauges, custom messages/armed text, baked flying-ready factory config. Flash with Full chip erase."
           gh release upload "$TAG" out/*.hex --clobber

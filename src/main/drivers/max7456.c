@@ -735,11 +735,20 @@ void max7456RefreshAll(void)
     while (max7456DrawScreen());
 }
 
-bool max7456WriteNvm(uint8_t char_address, const uint8_t *font_data)
+bool max7456WriteNvm(uint16_t char_address, const uint8_t *font_data)
 {
     if (!max7456DeviceDetected) {
         return false;
     }
+
+    // SYMBIOZE v7: the AT7456E stores 512 characters — CA[8] rides in
+    // CMAL[6] (the same bit the init probe uses for device detection).
+    // Page-2 addresses on a genuine MAX7456 would corrupt page 1, so refuse.
+    if (char_address > 0x1FF
+        || (char_address > 0xFF && max7456DeviceType != MAX7456_DEVICE_TYPE_AT)) {
+        return false;
+    }
+    const uint8_t cmalHigh = (char_address & 0x100) ? (1 << 6) : 0;
 
     // Block pending completion of any prior SPI access
     spiWait(dev);
@@ -748,10 +757,10 @@ bool max7456WriteNvm(uint8_t char_address, const uint8_t *font_data)
     fontIsLoading = true;
     spiWriteReg(dev, MAX7456ADD_VM0, 0);
 
-    spiWriteReg(dev, MAX7456ADD_CMAH, char_address); // set start address high
+    spiWriteReg(dev, MAX7456ADD_CMAH, char_address & 0xFF); // set start address high
 
     for (int x = 0; x < 54; x++) {
-        spiWriteReg(dev, MAX7456ADD_CMAL, x); //set start address low
+        spiWriteReg(dev, MAX7456ADD_CMAL, cmalHigh | x); //set start address low
         spiWriteReg(dev, MAX7456ADD_CMDI, font_data[x]);
 #ifdef LED0_TOGGLE
         LED0_TOGGLE;
@@ -769,6 +778,46 @@ bool max7456WriteNvm(uint8_t char_address, const uint8_t *font_data)
     while ((spiReadRegMsk(dev, MAX7456ADD_STAT) & STAT_NVR_BUSY) != 0x00);
 
     return true;
+}
+
+// SYMBIOZE v7: AT7456E page-2 bench probes (CLI `page2`). Writes ONE display
+// cell directly, bypassing the layer/shadow buffers, so the cell persists on
+// screen until repaint. Two hypotheses for how the AT selects page 2 when
+// DISPLAYING (upload is known: CA[8]=CMAL[6]):
+//  - attr mode: 8-bit operation, write the attribute byte (DMAH[1]=1). Bits
+//    [7:5] are LBC/BLK/INV on the MAX; bits [4:0] are "don't care" — one of
+//    them may be CA[8] on the AT.
+//  - dmm mode: 16-bit operation, per-write attributes come from DMM bits —
+//    probe the spare DMM bits (0x04 CLEAR_DISPLAY is masked out for safety).
+bool max7456DebugWriteCell(uint16_t pos, uint8_t chr, uint8_t attr, bool useAttrByte)
+{
+    if (!max7456DeviceDetected) {
+        return false;
+    }
+    spiWait(dev);
+    if (useAttrByte) {
+        spiWriteReg(dev, MAX7456ADD_DMM, 1 << 6); // 8-bit operation mode
+        spiWriteReg(dev, MAX7456ADD_DMAH, (pos >> 8) & 0x01);
+        spiWriteReg(dev, MAX7456ADD_DMAL, pos & 0xFF);
+        spiWriteReg(dev, MAX7456ADD_DMDI, chr);
+        spiWriteReg(dev, MAX7456ADD_DMAH, ((pos >> 8) & 0x01) | (1 << 1)); // attribute byte select
+        spiWriteReg(dev, MAX7456ADD_DMAL, pos & 0xFF);
+        spiWriteReg(dev, MAX7456ADD_DMDI, attr);
+    } else {
+        spiWriteReg(dev, MAX7456ADD_DMM, attr & ~(uint8_t)(CLEAR_DISPLAY | DMM_AUTO_INC | (1 << 6)));
+        spiWriteReg(dev, MAX7456ADD_DMAH, (pos >> 8) & 0x01);
+        spiWriteReg(dev, MAX7456ADD_DMAL, pos & 0xFF);
+        spiWriteReg(dev, MAX7456ADD_DMDI, chr);
+    }
+    spiWriteReg(dev, MAX7456ADD_DMM, displayMemoryModeReg); // restore normal mode
+    return true;
+}
+
+// SYMBIOZE v7: forget the shadow so the next draw passes repaint every cell —
+// cleans up after max7456DebugWriteCell. Bench use only (disarmed).
+void max7456DebugRepaint(void)
+{
+    memset(shadowBuffer, 0xFF, maxScreenSize);
 }
 
 #ifdef MAX7456_NRST_PIN
