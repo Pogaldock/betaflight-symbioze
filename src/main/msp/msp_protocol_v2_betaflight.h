@@ -37,3 +37,5 @@
 #define MSP2TEXT_RATE_PROFILE_NAME               4
 #define MSP2TEXT_BUILDKEY                        5
 #define MSP2TEXT_RELEASENAME                     6
+// SYMBIOZE: custom message slots (matches mainline numbering: 7..7+OSD_CUSTOM_MSG_COUNT-1)
+#define MSP2TEXT_CUSTOM_MSG_0                    7

@@ -1508,6 +1508,24 @@ const clivalue_t valueTable[] = {
     { "osd_art6_glyph",         VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, 255 }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[5].glyph) },
     { "osd_art6_cols",          VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, OSD_ART_MAX_COLS }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[5].cols) },
     { "osd_art6_rows",          VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, OSD_ART_MAX_ROWS }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[5].rows) },
+    // SYMBIOZE: art flipbook animation — frames of consecutive blocks, period in 0.1s
+    { "osd_art1_frames",        VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, 8 }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[0].frames) },
+    { "osd_art1_period",        VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, 50 }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[0].period) },
+    { "osd_art2_frames",        VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, 8 }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[1].frames) },
+    { "osd_art2_period",        VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, 50 }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[1].period) },
+    { "osd_art3_frames",        VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, 8 }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[2].frames) },
+    { "osd_art3_period",        VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, 50 }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[2].period) },
+    { "osd_art4_frames",        VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, 8 }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[3].frames) },
+    { "osd_art4_period",        VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, 50 }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[3].period) },
+    { "osd_art5_frames",        VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, 8 }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[4].frames) },
+    { "osd_art5_period",        VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, 50 }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[4].period) },
+    { "osd_art6_frames",        VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, 8 }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[5].frames) },
+    { "osd_art6_period",        VAR_UINT8   | MASTER_VALUE, .config.minmaxUnsigned = { 1, 50 }, PG_OSD_CONFIG, offsetof(osdConfig_t, art[5].period) },
+    // SYMBIOZE: positionable custom message elements
+    { "osd_custom_msg1_pos",    VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_CUSTOM_MSG0]) },
+    { "osd_custom_msg2_pos",    VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_CUSTOM_MSG1]) },
+    { "osd_custom_msg3_pos",    VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_CUSTOM_MSG2]) },
+    { "osd_custom_msg4_pos",    VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_CUSTOM_MSG3]) },
     { "osd_efficiency_pos",     VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_EFFICIENCY]) },
     { "osd_total_flights_pos",     VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_TOTAL_FLIGHTS]) },
     { "osd_aux_pos",            VAR_UINT16  | MASTER_VALUE, .config.minmaxUnsigned = { 0, OSD_POSCFG_MAX }, PG_OSD_ELEMENT_CONFIG, offsetof(osdElementConfig_t, item_pos[OSD_AUX_VALUE]) },
@@ -1786,6 +1804,14 @@ const clivalue_t valueTable[] = {
 #endif // USE_PERSISTENT_STATS
 
     { "craft_name",       VAR_UINT8  | MASTER_VALUE | MODE_STRING, .config.string = { 1, MAX_NAME_LENGTH, STRING_FLAGS_NONE }, PG_PILOT_CONFIG, offsetof(pilotConfig_t, craftName) },
+    // SYMBIOZE: custom message slots (typable text; raw glyphs via `osdmsg` or MSP)
+    { "custom_msg_1",     VAR_UINT8  | MASTER_VALUE | MODE_STRING, .config.string = { 1, MAX_NAME_LENGTH, STRING_FLAGS_NONE }, PG_PILOT_CONFIG, offsetof(pilotConfig_t, message[0]) },
+    { "custom_msg_2",     VAR_UINT8  | MASTER_VALUE | MODE_STRING, .config.string = { 1, MAX_NAME_LENGTH, STRING_FLAGS_NONE }, PG_PILOT_CONFIG, offsetof(pilotConfig_t, message[1]) },
+    { "custom_msg_3",     VAR_UINT8  | MASTER_VALUE | MODE_STRING, .config.string = { 1, MAX_NAME_LENGTH, STRING_FLAGS_NONE }, PG_PILOT_CONFIG, offsetof(pilotConfig_t, message[2]) },
+    { "custom_msg_4",     VAR_UINT8  | MASTER_VALUE | MODE_STRING, .config.string = { 1, MAX_NAME_LENGTH, STRING_FLAGS_NONE }, PG_PILOT_CONFIG, offsetof(pilotConfig_t, message[3]) },
+    // SYMBIOZE: custom armed/disarmed splash text (empty = stock ARMED/DISARMED)
+    { "osd_armed_text",   VAR_UINT8  | MASTER_VALUE | MODE_STRING, .config.string = { 1, MAX_NAME_LENGTH, STRING_FLAGS_NONE }, PG_PILOT_CONFIG, offsetof(pilotConfig_t, armedText) },
+    { "osd_disarmed_text", VAR_UINT8 | MASTER_VALUE | MODE_STRING, .config.string = { 1, MAX_NAME_LENGTH, STRING_FLAGS_NONE }, PG_PILOT_CONFIG, offsetof(pilotConfig_t, disarmedText) },
 #ifdef USE_OSD
     { "pilot_name",     VAR_UINT8  | MASTER_VALUE | MODE_STRING, .config.string = { 1, MAX_NAME_LENGTH, STRING_FLAGS_NONE }, PG_PILOT_CONFIG, offsetof(pilotConfig_t, pilotName) },
 #endif

@@ -2577,6 +2577,14 @@ static mspResult_e mspFcProcessOutCommandWithArg(mspDescriptor_t srcDesc, int16_
                     textVar = releaseName;
                     break;
 
+                // SYMBIOZE: custom message slots
+                case MSP2TEXT_CUSTOM_MSG_0:
+                case MSP2TEXT_CUSTOM_MSG_0 + 1:
+                case MSP2TEXT_CUSTOM_MSG_0 + 2:
+                case MSP2TEXT_CUSTOM_MSG_0 + 3:
+                    textVar = pilotConfigMutable()->message[textType - MSP2TEXT_CUSTOM_MSG_0];
+                    break;
+
                 default:
                     return MSP_RESULT_ERROR;
             }
@@ -4028,6 +4036,14 @@ static mspResult_e mspProcessInCommand(mspDescriptor_t srcDesc, int16_t cmdMSP, 
 
                 case MSP2TEXT_RATE_PROFILE_NAME:
                     textVar = currentControlRateProfile->profileName;
+                    break;
+
+                // SYMBIOZE: custom message slots (raw glyph bytes allowed)
+                case MSP2TEXT_CUSTOM_MSG_0:
+                case MSP2TEXT_CUSTOM_MSG_0 + 1:
+                case MSP2TEXT_CUSTOM_MSG_0 + 2:
+                case MSP2TEXT_CUSTOM_MSG_0 + 3:
+                    textVar = pilotConfigMutable()->message[textType - MSP2TEXT_CUSTOM_MSG_0];
                     break;
 
                 default:

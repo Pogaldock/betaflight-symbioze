@@ -938,7 +938,26 @@ static void osdElementDebug(osdElementParms_t *element)
 static void osdElementDisarmed(osdElementParms_t *element)
 {
     if (!ARMING_FLAG(ARMED)) {
-        tfp_sprintf(element->buff, "DISARMED");
+        // SYMBIOZE: customizable disarmed text (empty = stock "DISARMED")
+        if (pilotConfig()->disarmedText[0]) {
+            strncpy(element->buff, pilotConfig()->disarmedText, MAX_NAME_LENGTH);
+            element->buff[MAX_NAME_LENGTH] = 0;
+        } else {
+            tfp_sprintf(element->buff, "DISARMED");
+        }
+    }
+}
+
+// SYMBIOZE: positionable custom message slots — raw glyph bytes allowed, so a
+// slot can hold text OR a run of art glyphs (a mini image/badge).
+static void osdElementCustomMsg(osdElementParms_t *element)
+{
+    const int msgIndex = element->item - OSD_CUSTOM_MSG0;
+    if (msgIndex < 0 || msgIndex >= OSD_CUSTOM_MSG_COUNT || pilotConfig()->message[msgIndex][0] == '\0') {
+        tfp_sprintf(element->buff, "CUSTOM_MSG%d", msgIndex + 1);
+    } else {
+        strncpy(element->buff, pilotConfig()->message[msgIndex], MAX_NAME_LENGTH);
+        element->buff[MAX_NAME_LENGTH] = 0; // terminate maximum-length string
     }
 }
 
@@ -1792,6 +1811,10 @@ static const uint8_t osdElementDisplayOrder[] = {
     OSD_ART3, // SYMBIOZE
     OSD_ART4, // SYMBIOZE
     OSD_ART5, // SYMBIOZE
+    OSD_CUSTOM_MSG0, // SYMBIOZE
+    OSD_CUSTOM_MSG1, // SYMBIOZE
+    OSD_CUSTOM_MSG2, // SYMBIOZE
+    OSD_CUSTOM_MSG3, // SYMBIOZE
     OSD_ALTITUDE,
     OSD_ROLL_PIDS,
     OSD_PITCH_PIDS,
@@ -1898,8 +1921,18 @@ static void osdElementArt(osdElementParms_t *element)
     const uint8_t rows = constrain(osdConfig()->art[artIndex].rows, 1, OSD_ART_MAX_ROWS);
     const uint8_t base = osdConfig()->art[artIndex].glyph;
 
+    // SYMBIOZE: flipbook animation — cycle through `frames` consecutive
+    // blocks of cols x rows glyphs, advancing every `period` tenths of a
+    // second. frames = 1 (default) draws a static block as before.
+    const uint8_t frames = MAX(1, osdConfig()->art[artIndex].frames);
+    uint8_t frame = 0;
+    if (frames > 1) {
+        const uint32_t periodMs = MAX(1, osdConfig()->art[artIndex].period) * 100;
+        frame = (millis() / periodMs) % frames;
+    }
+
     const uint8_t row = artRow[artIndex];
-    uint8_t glyph = base + (uint8_t)(row * cols); // uint8 wrap is intentional
+    uint8_t glyph = base + (uint8_t)(frame * cols * rows + row * cols); // uint8 wrap is intentional
     for (uint8_t c = 0; c < cols; c++) {
         osdDisplayWriteChar(element, element->elemPosX + c, element->elemPosY + row, DISPLAYPORT_SEVERITY_NORMAL, glyph++);
     }
@@ -1924,6 +1957,10 @@ const osdElementDrawFn osdElementDrawFunction[OSD_ITEM_COUNT] = {
     [OSD_ART3]                   = osdElementArt, // SYMBIOZE
     [OSD_ART4]                   = osdElementArt, // SYMBIOZE
     [OSD_ART5]                   = osdElementArt, // SYMBIOZE
+    [OSD_CUSTOM_MSG0]            = osdElementCustomMsg, // SYMBIOZE
+    [OSD_CUSTOM_MSG1]            = osdElementCustomMsg, // SYMBIOZE
+    [OSD_CUSTOM_MSG2]            = osdElementCustomMsg, // SYMBIOZE
+    [OSD_CUSTOM_MSG3]            = osdElementCustomMsg, // SYMBIOZE
     [OSD_RSSI_VALUE]              = osdElementRssi,
     [OSD_MAIN_BATT_VOLTAGE]       = osdElementMainBatteryVoltage,
     [OSD_CROSSHAIRS]              = osdElementCrosshairs,  // only has background, but needs to be over other elements (like artificial horizon)

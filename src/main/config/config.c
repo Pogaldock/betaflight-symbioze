@@ -106,11 +106,14 @@ pidProfile_t *currentPidProfile;
 #define RX_SPI_DEFAULT_PROTOCOL 0
 #endif
 
-PG_REGISTER_WITH_RESET_TEMPLATE(pilotConfig_t, pilotConfig, PG_PILOT_CONFIG, 2);
+PG_REGISTER_WITH_RESET_TEMPLATE(pilotConfig_t, pilotConfig, PG_PILOT_CONFIG, 3); // SYMBIOZE v3: messages + armed/disarmed text
 
 PG_RESET_TEMPLATE(pilotConfig_t, pilotConfig,
     .craftName = { 0 },
     .pilotName = { 0 },
+    .message = { { 0 } },
+    .armedText = { 0 },
+    .disarmedText = { 0 },
 );
 
 PG_REGISTER_WITH_RESET_TEMPLATE(systemConfig_t, systemConfig, PG_SYSTEM_CONFIG, 3);

@@ -197,6 +197,12 @@ typedef enum {
     OSD_ART3,
     OSD_ART4,
     OSD_ART5,
+    // SYMBIOZE: positionable custom messages (set via CLI custom_msg_N /
+    // osdmsg, or MSP2_SET_TEXT — arbitrary glyph bytes allowed)
+    OSD_CUSTOM_MSG0,
+    OSD_CUSTOM_MSG1,
+    OSD_CUSTOM_MSG2,
+    OSD_CUSTOM_MSG3,
     OSD_ITEM_COUNT // MUST BE LAST
 } osd_items_e;
 
@@ -368,6 +374,8 @@ typedef struct osdConfig_s {
         uint8_t glyph;                        // first glyph code of the block (1-255)
         uint8_t cols;                         // block width in glyph cells
         uint8_t rows;                         // block height in glyph cells
+        uint8_t frames;                       // flipbook frames drawn from consecutive blocks (1 = static)
+        uint8_t period;                       // frame period in tenths of a second
     } art[6];
 } osdConfig_t;
 

@@ -51,6 +51,7 @@
 #include "common/utils.h"
 #include "common/unit.h"
 
+#include "config/config.h" // SYMBIOZE: pilotConfig for the custom armed text
 #include "config/feature.h"
 
 #include "drivers/display.h"
@@ -156,9 +157,9 @@ escSensorData_t *osdEscDataCombined;
 
 STATIC_ASSERT(OSD_POS_MAX == OSD_POS(63,31), OSD_POS_MAX_incorrect);
 
-PG_REGISTER_WITH_RESET_FN(osdConfig_t, osdConfig, PG_OSD_CONFIG, 13); // SYMBIOZE: v13 = art elements
+PG_REGISTER_WITH_RESET_FN(osdConfig_t, osdConfig, PG_OSD_CONFIG, 14); // SYMBIOZE: v14 = art animation (frames/period)
 
-PG_REGISTER_WITH_RESET_FN(osdElementConfig_t, osdElementConfig, PG_OSD_ELEMENT_CONFIG, 2); // SYMBIOZE: v2 = item_pos[] grew by the 6 OSD_ART elements; bump forces a clean reset of a stale (pre-art) osdElementConfig instead of misreading it
+PG_REGISTER_WITH_RESET_FN(osdElementConfig_t, osdElementConfig, PG_OSD_ELEMENT_CONFIG, 3); // SYMBIOZE: v3 = item_pos[] grew by OSD_CUSTOM_MSG0..3 (v2 added the art elements)
 
 // Controls the display order of the OSD post-flight statistics.
 // Adjust the ordering here to control how the post-flight stats are presented.
@@ -437,6 +438,8 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
         osdConfig->art[i].glyph = 0xA0;
         osdConfig->art[i].cols = 24;
         osdConfig->art[i].rows = 4;
+        osdConfig->art[i].frames = 1;  // static by default
+        osdConfig->art[i].period = 5;  // 0.5 s per frame when animated
     }
 }
 
@@ -1206,7 +1209,9 @@ static timeDelta_t osdShowArmed(void)
     } else {
         ret = (REFRESH_1S / 2);
     }
-    displayWrite(osdDisplayPort, midCol - (strlen("ARMED") / 2), midRow, DISPLAYPORT_SEVERITY_NORMAL, "ARMED");
+    // SYMBIOZE: the armed splash text is customizable (empty = stock "ARMED")
+    const char *armedText = pilotConfig()->armedText[0] ? pilotConfig()->armedText : "ARMED";
+    displayWrite(osdDisplayPort, midCol - (strlen(armedText) / 2), midRow, DISPLAYPORT_SEVERITY_NORMAL, armedText);
 
     if (isFlipOverAfterCrashActive()) {
         displayWrite(osdDisplayPort, midCol - (strlen(CRASH_FLIP_WARNING) / 2), midRow + 1, DISPLAYPORT_SEVERITY_NORMAL, CRASH_FLIP_WARNING);

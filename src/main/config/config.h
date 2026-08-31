@@ -32,9 +32,17 @@ typedef enum {
     CONFIGURATION_STATE_CONFIGURED,
 } configurationState_e;
 
+// SYMBIOZE: positionable custom OSD messages (arbitrary glyphs allowed)
+#define OSD_CUSTOM_MSG_COUNT 4
+
 typedef struct pilotConfig_s {
     char craftName[MAX_NAME_LENGTH + 1];
     char pilotName[MAX_NAME_LENGTH + 1];
+    // SYMBIOZE: custom message slots + custom armed/disarmed splash text
+    // (empty string = use the built-in "ARMED"/"DISARMED")
+    char message[OSD_CUSTOM_MSG_COUNT][MAX_NAME_LENGTH + 1];
+    char armedText[MAX_NAME_LENGTH + 1];
+    char disarmedText[MAX_NAME_LENGTH + 1];
 } pilotConfig_t;
 
 PG_DECLARE(pilotConfig_t, pilotConfig);
