@@ -59,8 +59,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG=symbioze-air65-g473-v4
+          TAG=symbioze-air65-g473-v5
           gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" \
-            --title "Symbioze OSD — BetaFPV Air65 v4: messages, animation, custom armed text" --prerelease \
+            --title "Symbioze OSD — BetaFPV Air65 v5: proven analog-OSD defaults" --prerelease \
             --notes "BetaFPV Air65 (BETAFPVG473) on Betaflight 4.5.6 + full Symbioze OSD suite. v4 adds: 4 positionable CUSTOM MESSAGES (CLI custom_msg_N / osdmsg with \xNN glyph escapes / MSP), ART ANIMATION (osd_artN_frames + osd_artN_period — flipbook cycling of consecutive glyph blocks), and CUSTOM ARMED/DISARMED TEXT (osd_armed_text / osd_disarmed_text). Factory config still baked in (boots flying-ready). Flash with Full chip erase, re-upload your font, apply your layout."
           gh release upload "$TAG" out/*.hex --clobber

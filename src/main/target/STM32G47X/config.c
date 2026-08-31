@@ -48,9 +48,11 @@
 void targetConfiguration(void)
 {
 #ifdef SYMBIOZE_AIR65_DEFAULTS
-    // ---- OSD: on, and pinned to the analog MAX7456 (AUTO detection can miss it)
+    // ---- OSD: on. displayPortDevice stays AUTO — that is what the verified
+    // working factory config uses; pinning MAX7456 broke OSD selection in the
+    // field (board came up as "OSD: MSP"). Match the proven config exactly.
     featureConfigMutable()->enabledFeatures |= FEATURE_OSD;
-    osdConfigMutable()->displayPortDevice = OSD_DISPLAYPORT_DEVICE_MAX7456;
+    osdConfigMutable()->displayPortDevice = OSD_DISPLAYPORT_DEVICE_AUTO;
 
     // ---- VTX table (BetaFPV factory, 6 bands x 8 channels, 5 power levels)
     vtxTableConfig_t *vtx = vtxTableConfigMutable();
