@@ -157,7 +157,7 @@ escSensorData_t *osdEscDataCombined;
 
 STATIC_ASSERT(OSD_POS_MAX == OSD_POS(63,31), OSD_POS_MAX_incorrect);
 
-PG_REGISTER_WITH_RESET_FN(osdConfig_t, osdConfig, PG_OSD_CONFIG, 16); // SYMBIOZE: v16 = 1KB map pool + frame sequences
+PG_REGISTER_WITH_RESET_FN(osdConfig_t, osdConfig, PG_OSD_CONFIG, 0); // SYMBIOZE suite v7: 1KB map pool + frame sequences (PG version is a 4-bit field — 15 wraps to 0; any change still forces the reset)
 
 PG_REGISTER_WITH_RESET_FN(osdElementConfig_t, osdElementConfig, PG_OSD_ELEMENT_CONFIG, 4); // SYMBIOZE: v4 = item_pos[] grew to 10 art slots (v3 msgs, v2 art)
 
