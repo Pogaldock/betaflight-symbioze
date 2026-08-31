@@ -138,7 +138,7 @@ void targetConfiguration(void)
     p0->pid[PID_YAW].P = 61;   p0->pid[PID_YAW].I = 87;    p0->pid[PID_YAW].D = 0;    p0->pid[PID_YAW].F = 0;
     p0->d_min[FD_ROLL] = 41;
     p0->d_min[FD_PITCH] = 56;
-    p0->d_max_gain = 20;
+    p0->d_min_gain = 20; // the CLI's `d_max_gain` — struct kept the legacy name
     p0->tpa_rate = 60;
 
     pidProfile_t *p1 = pidProfilesMutable(1);
